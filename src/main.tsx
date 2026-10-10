@@ -30,6 +30,14 @@ try {
   console.warn('The mock API could not start.', error)
 }
 
+// The mock API and the registration coordinator stop for good once the page
+// starts unloading, so a page restored from the back/forward cache loads again.
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    window.location.reload()
+  }
+})
+
 const queryClient = createQueryClient()
 // Lives for the whole app: pending registrations keep going across screens and matches.
 const registration = new RegistrationCoordinator(queryClient, matchJournal)

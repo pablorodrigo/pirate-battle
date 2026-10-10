@@ -34,6 +34,11 @@ const BACKOFF_MAX_MS = 30_000
  * scenario changes; rejected registrations wait for a manual retry. A
  * registration in backoff never blocks the others. It lives for the whole
  * app, so leaving a screen or starting a new match never stops it.
+ *
+ * Once the page starts unloading it sends nothing more and records no
+ * failure: the mock API stops serving a page at `beforeunload`, so a request
+ * sent then reaches the real network and its error says nothing about the
+ * match. The next visit resends what is still pending; resends are idempotent.
  */
 export class RegistrationCoordinator {
   private readonly queryClient: QueryClient
@@ -44,6 +49,7 @@ export class RegistrationCoordinator {
   private timer: ReturnType<typeof setTimeout> | null = null
   private version = 0
   private started = false
+  private unloading = false
 
   constructor(queryClient: QueryClient, journal: Journal) {
     this.queryClient = queryClient
@@ -59,6 +65,7 @@ export class RegistrationCoordinator {
     this.started = true
     window.addEventListener('online', this.retryNow)
     window.addEventListener(NETWORK_CHANGED_EVENT, this.retryNow)
+    window.addEventListener('beforeunload', this.stop)
     this.flush()
   }
 
@@ -111,9 +118,14 @@ export class RegistrationCoordinator {
   /** Changes whenever any status may have changed; pairs with useSyncExternalStore. */
   readonly getVersion = (): number => this.version
 
+  private readonly stop = (): void => {
+    this.unloading = true
+    this.clearTimer()
+  }
+
   private flush(): void {
     this.clearTimer()
-    if (this.inFlight) {
+    if (this.inFlight || this.unloading) {
       return
     }
     const now = Date.now()
@@ -155,6 +167,9 @@ export class RegistrationCoordinator {
       },
       (error: unknown) => {
         this.inFlight = null
+        if (this.unloading) {
+          return
+        }
         const failure = toApiFailure(error)
         const previous = this.journal.getState().outbox.find((entry) => entry.match.matchId === matchId)
         this.journal.recordFailure(matchId, failure.message, !failure.retryable)
