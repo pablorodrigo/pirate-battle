@@ -1,0 +1,249 @@
+{
+  "environment": {
+    "browser": "Google Chrome 154.0.8037.99, headless mode",
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+    "cpu": "Apple M1 Pro",
+    "logicalCores": 8,
+    "memoryGb": 16,
+    "os": "Darwin 23.6.0",
+    "viewport": {
+      "width": 1512,
+      "height": 982
+    },
+    "devicePixelRatio": 2
+  },
+  "cycle": {
+    "count": 5,
+    "playSeconds": 30,
+    "spawnIntervalSeconds": 2.5,
+    "seed": 2026
+  },
+  "growthFromCycle1ToLast": {
+    "jsHeapUsedMb": 0.66,
+    "domNodes": 0,
+    "jsEventListeners": 0,
+    "liveCanvases": 0,
+    "liveWebGlContexts": 0
+  },
+  "largestHeapGrowthFromCycle1ToLast": [
+    {
+      "name": "(code)",
+      "objects": 2904,
+      "kilobytes": 573.3
+    },
+    {
+      "name": "system / WeakArrayList",
+      "objects": 21,
+      "kilobytes": 25.3
+    },
+    {
+      "name": "(string)",
+      "objects": 82,
+      "kilobytes": 17.3
+    },
+    {
+      "name": "blink::HashTrieNode<blink::CSSVariableData>",
+      "objects": 23,
+      "kilobytes": 6.1
+    },
+    {
+      "name": "system / ExternalStringData",
+      "objects": 3,
+      "kilobytes": 3.8
+    },
+    {
+      "name": "blink::ComputedStyleBase::StyleSurroundData",
+      "objects": 10,
+      "kilobytes": 3
+    },
+    {
+      "name": "blink::ImageResource",
+      "objects": 1,
+      "kilobytes": 2.9
+    },
+    {
+      "name": "blink::NetworkResourcesData::ResourceData",
+      "objects": 10,
+      "kilobytes": 2.8
+    },
+    {
+      "name": "blink::HeapHashTableBacking<blink::HashTable<blink::String, blink::KeyValuePair<blink::String, cppgc::internal::BasicMember<blink::NetworkResourcesData::ResourceData, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<String>, blink::HashTraits<cppgc::internal::BasicMember<blink::NetworkResourcesData::ResourceData, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<String>, blink::HeapAllocator>>",
+      "objects": 0,
+      "kilobytes": 2
+    },
+    {
+      "name": "blink::StyleFetchedImage",
+      "objects": 10,
+      "kilobytes": 1.6
+    },
+    {
+      "name": "MessagePort",
+      "objects": 10,
+      "kilobytes": 1.5
+    },
+    {
+      "name": "LargestContentfulPaint",
+      "objects": 11,
+      "kilobytes": 1.5
+    },
+    {
+      "name": "blink::CSSUrlData",
+      "objects": 20,
+      "kilobytes": 1.4
+    },
+    {
+      "name": "blink::XHRReplayData",
+      "objects": 8,
+      "kilobytes": 1.4
+    },
+    {
+      "name": "Je",
+      "objects": 19,
+      "kilobytes": 1.3
+    }
+  ],
+  "snapshots": [
+    {
+      "label": "Main menu, before any match",
+      "jsHeapUsedMb": 5,
+      "domNodes": 291,
+      "jsEventListeners": 177,
+      "documents": 1,
+      "canvasesInDocument": 0,
+      "liveCanvases": [],
+      "liveWebGlContexts": []
+    },
+    {
+      "label": "Main menu, after cycle 1",
+      "jsHeapUsedMb": 7.35,
+      "domNodes": 303,
+      "jsEventListeners": 177,
+      "documents": 1,
+      "canvasesInDocument": 0,
+      "liveCanvases": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "liveWebGlContexts": [
+        "WebGL 1, active"
+      ]
+    },
+    {
+      "label": "Main menu, after cycle 2",
+      "jsHeapUsedMb": 7.54,
+      "domNodes": 303,
+      "jsEventListeners": 177,
+      "documents": 1,
+      "canvasesInDocument": 0,
+      "liveCanvases": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "liveWebGlContexts": [
+        "WebGL 1, active"
+      ]
+    },
+    {
+      "label": "Main menu, after cycle 3",
+      "jsHeapUsedMb": 7.69,
+      "domNodes": 303,
+      "jsEventListeners": 177,
+      "documents": 1,
+      "canvasesInDocument": 0,
+      "liveCanvases": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "liveWebGlContexts": [
+        "WebGL 1, active"
+      ]
+    },
+    {
+      "label": "Main menu, after cycle 4",
+      "jsHeapUsedMb": 7.88,
+      "domNodes": 303,
+      "jsEventListeners": 177,
+      "documents": 1,
+      "canvasesInDocument": 0,
+      "liveCanvases": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "liveWebGlContexts": [
+        "WebGL 1, active"
+      ]
+    },
+    {
+      "label": "Main menu, after cycle 5",
+      "jsHeapUsedMb": 8.01,
+      "domNodes": 303,
+      "jsEventListeners": 177,
+      "documents": 1,
+      "canvasesInDocument": 0,
+      "liveCanvases": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "liveWebGlContexts": [
+        "WebGL 1, active"
+      ]
+    }
+  ],
+  "cycles": [
+    {
+      "cycle": 1,
+      "jsHeapUsedMbWhilePlaying": 10.51,
+      "canvasesWhilePlaying": 1,
+      "leftFrom": "pause menu"
+    },
+    {
+      "cycle": 2,
+      "jsHeapUsedMbWhilePlaying": 10.28,
+      "canvasesWhilePlaying": 1,
+      "leftFrom": "pause menu"
+    },
+    {
+      "cycle": 3,
+      "jsHeapUsedMbWhilePlaying": 9.55,
+      "canvasesWhilePlaying": 1,
+      "leftFrom": "pause menu"
+    },
+    {
+      "cycle": 4,
+      "jsHeapUsedMbWhilePlaying": 10.39,
+      "canvasesWhilePlaying": 1,
+      "leftFrom": "pause menu"
+    },
+    {
+      "cycle": 5,
+      "jsHeapUsedMbWhilePlaying": 11.48,
+      "canvasesWhilePlaying": 1,
+      "leftFrom": "pause menu"
+    }
+  ]
+}
