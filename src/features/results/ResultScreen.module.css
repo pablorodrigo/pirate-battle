@@ -12,6 +12,12 @@
   width: min(30rem, 100%);
 }
 
+/* The two groups only matter on short landscape screens; elsewhere their children stack in the panel. */
+.outcome,
+.next {
+  display: contents;
+}
+
 .title {
   margin: 0;
   font-size: clamp(2rem, 6vw, 3rem);
@@ -56,4 +62,52 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.75rem;
+}
+
+/*
+ * A phone held sideways is too short for one column: the outcome sits on the
+ * left, the registration on the right and the actions across the bottom, so
+ * everything fits without scrolling, even with a retry button.
+ */
+@media (orientation: landscape) and (max-height: 32rem) {
+  .screen {
+    padding: max(env(safe-area-inset-top), 0.5rem) max(env(safe-area-inset-right), 0.5rem)
+      max(env(safe-area-inset-bottom), 0.5rem) max(env(safe-area-inset-left), 0.5rem);
+  }
+
+  .panel {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'outcome registration'
+      'actions actions';
+    align-items: center;
+    column-gap: 2rem;
+    row-gap: 1rem;
+    width: min(46rem, 100%);
+  }
+
+  .outcome {
+    grid-area: outcome;
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+  }
+
+  .registration {
+    grid-area: registration;
+  }
+
+  .actions {
+    grid-area: actions;
+  }
+
+  .title {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .row {
+    min-width: 0;
+    width: 100%;
+  }
 }

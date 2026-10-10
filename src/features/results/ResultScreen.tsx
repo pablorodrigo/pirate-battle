@@ -52,39 +52,44 @@ export function ResultScreen({ match, onPlayAgain, onMainMenu }: ResultScreenPro
   return (
     <main className={`${backdrop.backdrop} ${styles.screen}`}>
       <Panel className={styles.panel}>
-        <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
-          {HEADLINES[match.endReason]}
-        </h1>
-        <dl className={styles.summary}>
-          <div className={styles.row}>
-            <dt>Score</dt>
-            <dd data-testid="result-score">{match.score}</dd>
-          </div>
-          <div className={styles.row}>
-            <dt>Time played</dt>
-            <dd data-testid="result-time">{formatClock(match.durationMs / 1000)}</dd>
-          </div>
-          <div className={styles.row}>
-            <dt>Reason</dt>
-            <dd data-testid="result-reason">{REASONS[match.endReason]}</dd>
-          </div>
-        </dl>
-        <div className={styles.registration} data-testid="registration-status" data-status={status.kind}>
-          <p role="status">{registrationText(status)}</p>
-          {status.kind !== 'confirmed' && status.kind !== 'sending' && (
-            <Button variant="secondary" size="small" onClick={() => registration.retry(match.matchId)}>
-              Try again
-            </Button>
-          )}
-          {!persisted && (
-            <p role="alert">This browser could not store the match, so it will be lost if the page reloads.</p>
-          )}
+        {/* On short landscape screens the outcome takes the left column; see the stylesheet. */}
+        <div className={styles.outcome}>
+          <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
+            {HEADLINES[match.endReason]}
+          </h1>
+          <dl className={styles.summary}>
+            <div className={styles.row}>
+              <dt>Score</dt>
+              <dd data-testid="result-score">{match.score}</dd>
+            </div>
+            <div className={styles.row}>
+              <dt>Time played</dt>
+              <dd data-testid="result-time">{formatClock(match.durationMs / 1000)}</dd>
+            </div>
+            <div className={styles.row}>
+              <dt>Reason</dt>
+              <dd data-testid="result-reason">{REASONS[match.endReason]}</dd>
+            </div>
+          </dl>
         </div>
-        <div className={styles.actions}>
-          <Button onClick={onPlayAgain}>Play Again</Button>
-          <Button variant="secondary" onClick={onMainMenu}>
-            Main Menu
-          </Button>
+        <div className={styles.next}>
+          <div className={styles.registration} data-testid="registration-status" data-status={status.kind}>
+            <p role="status">{registrationText(status)}</p>
+            {status.kind !== 'confirmed' && status.kind !== 'sending' && (
+              <Button variant="secondary" size="small" onClick={() => registration.retry(match.matchId)}>
+                Try again
+              </Button>
+            )}
+            {!persisted && (
+              <p role="alert">This browser could not store the match, so it will be lost if the page reloads.</p>
+            )}
+          </div>
+          <div className={styles.actions}>
+            <Button onClick={onPlayAgain}>Play Again</Button>
+            <Button variant="secondary" onClick={onMainMenu}>
+              Main Menu
+            </Button>
+          </div>
         </div>
       </Panel>
     </main>

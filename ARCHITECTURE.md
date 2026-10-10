@@ -111,6 +111,8 @@ The match pauses from the Pause button, `P` or `Escape`, when the window loses f
 
 In the landscape layout the HUD header draws no box (`display: contents`), so the grid places each of its parts in a side column while the markup stays one semantic block. In portrait, the HUD and the controls keep their size, and on a very short screen the arena's box shrinks instead; the renderer fits the arena inside whatever box it gets.
 
+**Result screen on a phone held sideways.** One column of outcome, registration status and actions is taller than a phone in landscape. On landscape screens up to 32rem high, the outcome takes the left column, the registration status the right one and the actions run across the bottom, so the whole panel fits, retry button included. Its two groups draw no box elsewhere (`display: contents`), so other screens keep the single column, and the reading and focus order never changes.
+
 **Touch gestures.** The page behaves like a game, not a document:
 
 - It selects no text and opens no long-press callout. Form fields stay selectable.
