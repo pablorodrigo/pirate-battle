@@ -1,6 +1,6 @@
 # Test report
 
-Last full run: October 10, 2026, on commit `a8deeaa`.
+Last full run: October 10, 2026, on commit `8260e8c`.
 
 ## Summary
 
@@ -8,9 +8,9 @@ Last full run: October 10, 2026, on commit `a8deeaa`.
 | --- | --- | --- | --- |
 | Type checking | `npm run typecheck` | Passed | Passed |
 | Lint | `npm run lint` | Passed, no warnings | Passed, no warnings |
-| Unit tests | `npm run test:unit` | 89 passed in 18 files | 89 passed in 18 files |
+| Unit tests | `npm run test:unit` | 97 passed in 19 files | 97 passed in 19 files |
 | Production build | `npm run build` | Passed | Passed |
-| End-to-end and visual tests | `npm run test:e2e` | 126 passed, 6 skipped, in 2.0 min | 126 passed, 6 skipped, in 5.1 min |
+| End-to-end and visual tests | `npm run test:e2e` | 135 passed, 6 skipped, in 2.2 min | 135 passed, 6 skipped, in 6.1 min |
 
 Six tests are skipped on purpose in every run: the three touch-control tests in the two projects without a touch screen (`desktop-chromium` and `dev-strict-mode`). `mobile-chromium` runs them.
 
@@ -37,9 +37,9 @@ The Linux run uses the image, architecture and commands of the CI workflow (`.gi
 
 | Project | Target | Tests |
 | --- | --- | ---: |
-| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 45 (42 end-to-end, 3 visual) |
-| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch | 45 (42 end-to-end, 3 visual) |
-| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 42 (end-to-end only) |
+| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 48 (45 end-to-end, 3 visual) |
+| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch | 48 (45 end-to-end, 3 visual) |
+| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 45 (end-to-end only) |
 
 Every test starts from a fresh browser context. Matches use fixed seeds and, where timing matters, a manual clock that advances whole simulation steps; tests act through real key presses or, on touch, held fingers sent through the Chrome DevTools Protocol, and check the effects. Any console error or uncaught exception fails a test unless that test expects it.
 
@@ -60,6 +60,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | 11 | Registering a match, both tabs updating, and recovering a pending registration after a reload | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | 12 | Resending after a timeout without duplicates; late responses never replacing newer data | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | — | Visual regression of the menu, the arena in a stable state and the result screen | `visual/screens.spec.ts` |
+| — | Sound effects: the setting, and files that load only once a match starts and only while sound is on | `audio.spec.ts`, `options.spec.ts` |
 
 ## Unit tests
 
@@ -68,6 +69,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | Simulation: geometry, random numbers, session, movement, combat, enemies, spawns and navigation | `src/game/core/**` | 48 |
 | Configuration and arena layout | `src/game/config/**` | 9 |
 | Fixed-step loop and input merging | `src/game/runtime/**`, `src/game/input/**` | 8 |
+| Match sounds: which sound each event and change of the match plays | `src/game/audio/**` | 8 |
 | Ship atlas parser | `src/game/assets/**` | 3 |
 | Mock database, revision guard, settings and the registration outbox | `src/mocks/**`, `src/shared/api/**`, `src/features/**` | 17 |
 | Screen navigation | `src/app/**` | 4 |

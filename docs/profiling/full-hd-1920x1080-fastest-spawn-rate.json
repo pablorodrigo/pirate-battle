@@ -17,15 +17,15 @@
     "spawnIntervalSeconds": 1,
     "seed": 2026,
     "outcome": "Ship destroyed",
-    "measuredSeconds": 26.2,
+    "measuredSeconds": 28.2,
     "pausedDuringRun": false,
-    "finalScore": 13,
-    "finalHealth": 10
+    "finalScore": 10,
+    "finalHealth": 15
   },
   "frames": {
-    "count": 1572,
-    "averageFps": 59.9,
-    "lowestOneSecondFps": 59,
+    "count": 1694,
+    "averageFps": 60,
+    "lowestOneSecondFps": 59.4,
     "intervalMs": {
       "p50": 16.7,
       "p95": 16.8,
@@ -36,34 +36,34 @@
     "intervalsOver34ms": 0
   },
   "entities": {
-    "peakEnemies": 15,
-    "peakProjectiles": 10,
-    "peakTotal": 24,
-    "averageTotal": 11.8
+    "peakEnemies": 17,
+    "peakProjectiles": 7,
+    "peakTotal": 21,
+    "averageTotal": 12.5
   },
   "mainThreadShare": {
-    "tasks": 0.0764,
-    "scripts": 0.0469,
+    "tasks": 0.0693,
+    "scripts": 0.0409,
     "layoutAndStyle": 0.0006
   },
   "samples": [
     {
       "second": 1,
-      "fps": 59,
+      "fps": 60.7,
       "enemies": 1,
       "projectiles": 0,
       "score": 0,
       "health": 100,
-      "jsHeapMb": 10.1
+      "jsHeapMb": 9.6
     },
     {
       "second": 2,
-      "fps": 60.3,
+      "fps": 59.6,
       "enemies": 1,
-      "projectiles": 1,
+      "projectiles": 2,
       "score": 1,
       "health": 100,
-      "jsHeapMb": 9.4
+      "jsHeapMb": 10.7
     },
     {
       "second": 3,
@@ -72,16 +72,16 @@
       "projectiles": 4,
       "score": 1,
       "health": 100,
-      "jsHeapMb": 9.8
+      "jsHeapMb": 11
     },
     {
       "second": 4,
-      "fps": 60.6,
+      "fps": 60.5,
       "enemies": 2,
-      "projectiles": 1,
+      "projectiles": 2,
       "score": 2,
       "health": 100,
-      "jsHeapMb": 10.1
+      "jsHeapMb": 11.2
     },
     {
       "second": 5,
@@ -90,196 +90,214 @@
       "projectiles": 2,
       "score": 2,
       "health": 100,
-      "jsHeapMb": 9.9
+      "jsHeapMb": 11.2
     },
     {
       "second": 6,
-      "fps": 60.4,
+      "fps": 60.7,
       "enemies": 3,
-      "projectiles": 2,
+      "projectiles": 3,
       "score": 3,
       "health": 100,
-      "jsHeapMb": 10.3
+      "jsHeapMb": 11.8
     },
     {
       "second": 7,
-      "fps": 59.8,
+      "fps": 59.7,
       "enemies": 4,
       "projectiles": 0,
       "score": 3,
       "health": 100,
-      "jsHeapMb": 10.1
+      "jsHeapMb": 11.9
     },
     {
       "second": 8,
-      "fps": 59.7,
+      "fps": 59.6,
       "enemies": 5,
-      "projectiles": 3,
+      "projectiles": 0,
       "score": 3,
       "health": 100,
-      "jsHeapMb": 10.3
+      "jsHeapMb": 12.1
     },
     {
       "second": 9,
       "fps": 60.4,
-      "enemies": 5,
+      "enemies": 6,
       "projectiles": 3,
-      "score": 4,
+      "score": 3,
       "health": 100,
-      "jsHeapMb": 11.1
+      "jsHeapMb": 12.8
     },
     {
       "second": 10,
-      "fps": 59.7,
-      "enemies": 6,
-      "projectiles": 0,
-      "score": 4,
-      "health": 100,
-      "jsHeapMb": 10.1
-    },
-    {
-      "second": 11,
-      "fps": 60.4,
+      "fps": 59.6,
       "enemies": 7,
       "projectiles": 0,
-      "score": 4,
-      "health": 100,
-      "jsHeapMb": 10.2
-    },
-    {
-      "second": 12,
-      "fps": 59.6,
-      "enemies": 8,
-      "projectiles": 2,
-      "score": 4,
+      "score": 3,
       "health": 100,
       "jsHeapMb": 10.9
     },
     {
-      "second": 13,
-      "fps": 60.6,
-      "enemies": 9,
-      "projectiles": 0,
-      "score": 4,
+      "second": 11,
+      "fps": 60.5,
+      "enemies": 8,
+      "projectiles": 3,
+      "score": 3,
       "health": 100,
-      "jsHeapMb": 11.9
+      "jsHeapMb": 11.3
+    },
+    {
+      "second": 12,
+      "fps": 59.7,
+      "enemies": 9,
+      "projectiles": 3,
+      "score": 3,
+      "health": 100,
+      "jsHeapMb": 12.4
+    },
+    {
+      "second": 13,
+      "fps": 60.5,
+      "enemies": 9,
+      "projectiles": 4,
+      "score": 4,
+      "health": 80,
+      "jsHeapMb": 13.8
     },
     {
       "second": 14,
       "fps": 59.4,
       "enemies": 10,
-      "projectiles": 0,
+      "projectiles": 5,
       "score": 4,
-      "health": 100,
-      "jsHeapMb": 12.4
+      "health": 80,
+      "jsHeapMb": 11.6
     },
     {
       "second": 15,
-      "fps": 60.6,
-      "enemies": 11,
-      "projectiles": 5,
-      "score": 4,
-      "health": 100,
-      "jsHeapMb": 10.9
+      "fps": 60.3,
+      "enemies": 10,
+      "projectiles": 0,
+      "score": 5,
+      "health": 80,
+      "jsHeapMb": 12.5
     },
     {
       "second": 16,
-      "fps": 59.7,
-      "enemies": 12,
-      "projectiles": 1,
-      "score": 4,
-      "health": 100,
-      "jsHeapMb": 13.6
+      "fps": 60.3,
+      "enemies": 11,
+      "projectiles": 3,
+      "score": 5,
+      "health": 80,
+      "jsHeapMb": 13.5
     },
     {
       "second": 17,
-      "fps": 59.6,
-      "enemies": 13,
-      "projectiles": 0,
-      "score": 4,
-      "health": 100,
-      "jsHeapMb": 12.4
+      "fps": 59.5,
+      "enemies": 11,
+      "projectiles": 4,
+      "score": 5,
+      "health": 55,
+      "jsHeapMb": 14.5
     },
     {
       "second": 18,
-      "fps": 60.5,
-      "enemies": 14,
-      "projectiles": 0,
-      "score": 4,
-      "health": 90,
-      "jsHeapMb": 11.1
+      "fps": 60.2,
+      "enemies": 12,
+      "projectiles": 4,
+      "score": 5,
+      "health": 55,
+      "jsHeapMb": 12.6
     },
     {
       "second": 19,
-      "fps": 60.3,
-      "enemies": 15,
-      "projectiles": 1,
-      "score": 4,
-      "health": 90,
-      "jsHeapMb": 10.8
+      "fps": 59.6,
+      "enemies": 13,
+      "projectiles": 2,
+      "score": 5,
+      "health": 55,
+      "jsHeapMb": 13.9
     },
     {
       "second": 20,
-      "fps": 59.5,
+      "fps": 60.5,
       "enemies": 13,
-      "projectiles": 1,
+      "projectiles": 4,
       "score": 6,
       "health": 55,
-      "jsHeapMb": 13.6
+      "jsHeapMb": 12
     },
     {
       "second": 21,
-      "fps": 60.3,
+      "fps": 59.6,
       "enemies": 14,
-      "projectiles": 6,
+      "projectiles": 2,
       "score": 6,
-      "health": 45,
-      "jsHeapMb": 11.3
+      "health": 35,
+      "jsHeapMb": 13.3
     },
     {
       "second": 22,
-      "fps": 59.5,
-      "enemies": 14,
+      "fps": 60.4,
+      "enemies": 13,
       "projectiles": 7,
-      "score": 7,
-      "health": 45,
-      "jsHeapMb": 12.7
+      "score": 8,
+      "health": 25,
+      "jsHeapMb": 14.5
     },
     {
       "second": 23,
-      "fps": 60.3,
-      "enemies": 13,
-      "projectiles": 10,
-      "score": 9,
-      "health": 45,
-      "jsHeapMb": 11.1
+      "fps": 59.7,
+      "enemies": 14,
+      "projectiles": 4,
+      "score": 8,
+      "health": 25,
+      "jsHeapMb": 12.5
     },
     {
       "second": 24,
-      "fps": 59.5,
-      "enemies": 12,
-      "projectiles": 5,
-      "score": 10,
-      "health": 20,
-      "jsHeapMb": 12.9
+      "fps": 60.4,
+      "enemies": 14,
+      "projectiles": 4,
+      "score": 9,
+      "health": 15,
+      "jsHeapMb": 13.8
     },
     {
       "second": 25,
-      "fps": 60.5,
-      "enemies": 11,
-      "projectiles": 5,
-      "score": 12,
-      "health": 10,
-      "jsHeapMb": 13.7
+      "fps": 59.5,
+      "enemies": 14,
+      "projectiles": 1,
+      "score": 10,
+      "health": 15,
+      "jsHeapMb": 14.7
     },
     {
       "second": 26,
-      "fps": 59.7,
-      "enemies": 11,
-      "projectiles": 4,
-      "score": 13,
-      "health": 10,
-      "jsHeapMb": 11.4
+      "fps": 60.4,
+      "enemies": 15,
+      "projectiles": 0,
+      "score": 10,
+      "health": 15,
+      "jsHeapMb": 12.3
+    },
+    {
+      "second": 27,
+      "fps": 59.4,
+      "enemies": 16,
+      "projectiles": 0,
+      "score": 10,
+      "health": 15,
+      "jsHeapMb": 13.5
+    },
+    {
+      "second": 28,
+      "fps": 60.5,
+      "enemies": 17,
+      "projectiles": 0,
+      "score": 10,
+      "health": 15,
+      "jsHeapMb": 12.1
     }
   ]
 }

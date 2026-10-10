@@ -1,11 +1,11 @@
 # Profiling
 
-Combat performance and memory, measured with `npm run profile` on October 10, 2026, on commit `a8deeaa`. The raw results, with one sample per second of every match, are in [profiling/](profiling/).
+Combat performance and memory, measured with `npm run profile` on October 10, 2026, on commit `8260e8c`. The raw results, with one sample per second of every match, are in [profiling/](profiling/).
 
 ## Summary
 
-- Every measured match averaged **60 FPS** (59.9 in the shortest run), with a **95th percentile frame interval of 16.7 to 16.8 ms**, one frame at 60 Hz, at both resolutions. No frame interval exceeded 20 ms.
-- The busiest match reached **31 simultaneous entities**. The page's main thread was busy at most **8.4%** of the time, about 1.4 ms of each 16.7 ms frame.
+- Every measured match averaged **60 FPS**, with a **95th percentile frame interval of 16.7 to 16.8 ms**, one frame at 60 Hz, at both resolutions. No frame interval exceeded 20 ms.
+- The busiest match reached **38 simultaneous entities**. The page's main thread was busy at most **8.2%** of the time, about 1.4 ms of each 16.7 ms frame.
 - Five play-and-leave cycles leave no growing DOM nodes, event listeners, canvases or WebGL contexts. The JavaScript heap grows only through code compiled by the JIT, and levels off: twelve cycles end within 0.1 MB of where the ninth one did.
 - Profiling found two resources that outlived a match: the pixels of the baked terrain and the DOM of the first game screen. Both are fixed (`b37b207`, `a8deeaa`).
 
@@ -19,7 +19,7 @@ Combat performance and memory, measured with `npm run profile` on October 10, 20
 | Frame clock | 60 Hz |
 | Build | The optimized production bundle (`vite build`) plus the read-only test bridge (`npm run build:e2e`), served by `vite preview` |
 | Resolutions | 1512 × 982 CSS pixels at device pixel ratio 2, the default resolution of the laptop's built-in display (3024 × 1964 device pixels); 1920 × 1080 at ratio 1, a common external monitor |
-| Match configuration | 180 s per match (the longest Options allow), seed 2026, the default rules (`RULES_VERSION` 1); spawn interval per run below |
+| Match configuration | 180 s per match (the longest Options allow), seed 2026, the default rules (`RULES_VERSION` 1), sound effects on; spawn interval per run below |
 
 Chrome's headless mode renders every frame on the GPU and keeps a steady 60 Hz frame clock. A windowed Chrome on this laptop follows the display instead: up to 120 Hz on its ProMotion screen, and only about 49 frames per second in a quick check during these unattended night runs, which makes results hard to compare.
 
@@ -35,14 +35,14 @@ Chrome's headless mode renders every frame on the GPU and keeps a steady 60 Hz f
 
 | Run | Viewport | Result | Measured | Average FPS | Lowest FPS in 1 s | Frame interval p50 / p95 / p99 / max (ms) | Intervals over 20 ms | Peak entities | Peak enemies | Peak cannonballs | Average entities | Main thread busy |
 | --- | --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Three minutes, a spawn every 5 s | 1512 × 982 @2× | Lasted the match, 35 points | 179.7 s | 60 | 59.2 | 16.7 / 16.7 / 16.8 / 16.8 | 0 of 10,778 | 10 | 5 | 6 | 3.9 | 5.4% |
-| Three minutes, a spawn every 5 s | 1920 × 1080 @1× | Lasted the match, 34 points | 179.8 s | 60 | 59.2 | 16.7 / 16.7 / 16.8 / 16.8 | 0 of 10,785 | 9 | 4 | 5 | 3.5 | 6.2% |
-| Default spawns (2.5 s) | 1512 × 982 @2× | Lasted the match, 63 points | 179.6 s | 60 | 59.3 | 16.7 / 16.7 / 16.8 / 16.8 | 0 of 10,775 | 15 | 7 | 8 | 6.5 | 6.1% |
-| Default spawns (2.5 s) | 1920 × 1080 @1× | Sank after 90 s, 24 points | 89.8 s | 60 | 59.3 | 16.7 / 16.8 / 16.8 / 16.8 | 0 of 5,389 | 13 | 8 | 6 | 6.2 | 7.1% |
-| Fastest spawns (1 s) | 1512 × 982 @2× | Sank after 42 s, 15 points | 42.3 s | 60 | 59.4 | 16.7 / 16.7 / 16.8 / 16.8 | 0 of 2,540 | 31 | 25 | 8 | 16.7 | 8.4% |
-| Fastest spawns (1 s) | 1920 × 1080 @1× | Sank after 26 s, 13 points | 26.2 s | 59.9 | 59 | 16.7 / 16.8 / 16.8 / 16.8 | 0 of 1,571 | 24 | 15 | 10 | 11.8 | 7.6% |
+| Three minutes, a spawn every 5 s | 1512 × 982 @2× | Lasted the match, 34 points | 179.6 s | 60 | 59.4 | 16.7 / 16.7 / 16.8 / 16.8 | 0 of 10,774 | 8 | 3 | 5 | 3.3 | 5.7% |
+| Three minutes, a spawn every 5 s | 1920 × 1080 @1× | Lasted the match, 35 points | 179.6 s | 60 | 59.2 | 16.7 / 16.7 / 16.8 / 16.8 | 0 of 10,774 | 12 | 5 | 6 | 4.3 | 6.6% |
+| Default spawns (2.5 s) | 1512 × 982 @2× | Sank after 130 s, 40 points | 130.1 s | 60 | 59.2 | 16.7 / 16.7 / 16.8 / 16.8 | 0 of 7,802 | 16 | 9 | 7 | 6.6 | 7.0% |
+| Default spawns (2.5 s) | 1920 × 1080 @1× | Lasted the match, 66 points | 179.5 s | 60 | 59.2 | 16.7 / 16.7 / 16.8 / 16.8 | 0 of 10,768 | 18 | 8 | 10 | 6.1 | 7.0% |
+| Fastest spawns (1 s) | 1512 × 982 @2× | Sank after 59 s, 27 points | 58.5 s | 60 | 59.3 | 16.7 / 16.8 / 16.8 / 16.8 | 0 of 3,506 | 38 | 30 | 10 | 17.7 | 8.2% |
+| Fastest spawns (1 s) | 1920 × 1080 @1× | Sank after 28 s, 10 points | 28.2 s | 60 | 59.4 | 16.7 / 16.8 / 16.8 / 16.8 | 0 of 1,693 | 21 | 17 | 7 | 12.5 | 6.9% |
 
-Matches run in real time, so the bot's play varies from run to run. With one spawn every 5 s it reliably lasts the whole match, which gives the three-minute measurement. The default (2.5 s) and fastest (1 s) spawn intervals load the same 180 s match more, until the bot's ship sinks: at the default rate it lasted the whole match in one run and sank after 90 s in the other. Peak enemies and peak cannonballs can happen at different moments, so the peak total is not their sum.
+Matches run in real time, so the bot's play varies from run to run. With one spawn every 5 s it reliably lasts the whole match, which gives the three-minute measurement. The default (2.5 s) and fastest (1 s) spawn intervals load the same 180 s match more, until the bot's ship sinks: at the default rate it lasted the whole match at 1920 × 1080 and sank after 130 s at 1512 × 982. Peak enemies and peak cannonballs can happen at different moments, so the peak total is not their sum.
 
 ## Memory across five play-and-leave cycles
 
@@ -50,20 +50,20 @@ At 1512 × 982 @2×:
 
 | Back on the main menu | JS heap (MB) | DOM nodes | Event listeners | Canvases in the page | Live canvases | Live WebGL contexts |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
-| before any match | 5.00 | 291 | 177 | 0 | none | none |
-| after cycle 1 | 7.35 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
-| after cycle 2 | 7.54 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
-| after cycle 3 | 7.69 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
-| after cycle 4 | 7.88 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
-| after cycle 5 | 8.01 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
+| before any match | 5.05 | 291 | 177 | 0 | none | none |
+| after cycle 1 | 7.41 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
+| after cycle 2 | 7.60 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
+| after cycle 3 | 7.76 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
+| after cycle 4 | 7.95 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
+| after cycle 5 | 8.07 | 303 | 177 | 0 | 7, all 0 × 0 | 1 (PixiJS test context) |
 
-The run at 1920 × 1080 recorded the same counts, with a heap of 7.98 MB after the fifth cycle. Every cycle left the match from the pause menu.
+The run at 1920 × 1080 recorded the same counts, with a heap of 8.06 MB after the fifth cycle. Every cycle left the match from the pause menu.
 
 What the numbers show:
 
 1. **No accumulating resources.** DOM nodes, event listeners, live canvases and WebGL contexts are identical after every cycle, and the page holds no canvas once the player is back on the menu.
-2. **Heap growth is compiled code.** The JavaScript heap grew 0.66 MB from the first to the fifth cycle. Comparing the heap snapshots, 0.59 MB of that growth is `(code)`: functions of the game compiled and optimized by the JIT as they run. No application or PixiJS object type is among the largest increases. A twelve-cycle run shows the curve flattening: the heap read 7.33, 7.53, 7.69, 7.87, 7.99, 8.01, 8.03, 8.10, 8.43, 8.45, 8.48 and 8.47 MB after cycles 1 to 12, and compiled code accounts for 1.00 MB of the 1.14 MB grown from the first to the twelfth cycle.
-3. **What stays after the first match, by design.** The textures shared by every match (ships, effects and tiles) stay in the asset cache, so later matches start without loading them again. PixiJS keeps one small WebGL context of its own for capability checks. The remaining canvases are empty (0 × 0) and hold no pixels.
+2. **Heap growth is compiled code.** The JavaScript heap grew 0.66 MB from the first to the fifth cycle. Comparing the heap snapshots, 0.61 MB of that growth is `(code)`: functions of the game compiled and optimized by the JIT as they run. No application or PixiJS object type is among the largest increases. A twelve-cycle run shows the curve flattening: the heap read 7.41, 7.62, 7.77, 7.96, 8.09, 8.10, 8.13, 8.18, 8.52, 8.57, 8.58 and 8.56 MB after cycles 1 to 12, and compiled code accounts for 1.00 MB of the 1.15 MB grown from the first to the twelfth cycle.
+3. **What stays after the first match, by design.** The textures shared by every match (ships, effects and tiles) stay in the asset cache, and the decoded sound effects in the sound bank, so later matches start without loading them again. PixiJS keeps one small WebGL context of its own for capability checks. The remaining canvases are empty (0 × 0) and hold no pixels.
 
 Of the 12 DOM nodes the first match adds for good, four are the `modulepreload` links that Vite adds to the page when the game code loads, and seven are the empty canvases above.
 

@@ -19,7 +19,7 @@
     "seed": 2026
   },
   "growthFromCycle1ToLast": {
-    "jsHeapUsedMb": 0.65,
+    "jsHeapUsedMb": 0.67,
     "domNodes": 0,
     "jsEventListeners": 0,
     "liveCanvases": 0,
@@ -28,28 +28,28 @@
   "largestHeapGrowthFromCycle1ToLast": [
     {
       "name": "(code)",
-      "objects": 2975,
-      "kilobytes": 576.7
+      "objects": 3058,
+      "kilobytes": 587.5
     },
     {
       "name": "system / WeakArrayList",
-      "objects": 17,
-      "kilobytes": 26.7
+      "objects": 21,
+      "kilobytes": 28.2
     },
     {
       "name": "(string)",
-      "objects": 43,
+      "objects": 33,
       "kilobytes": 17.2
     },
     {
       "name": "blink::HashTrieNode<blink::CSSVariableData>",
-      "objects": 20,
-      "kilobytes": 5.3
+      "objects": 18,
+      "kilobytes": 4.8
     },
     {
       "name": "system / ExternalStringData",
-      "objects": 2,
-      "kilobytes": 3.8
+      "objects": 3,
+      "kilobytes": 3.9
     },
     {
       "name": "blink::NetworkResourcesData::ResourceData",
@@ -58,8 +58,8 @@
     },
     {
       "name": "LargestContentfulPaint",
-      "objects": 13,
-      "kilobytes": 1.7
+      "objects": 11,
+      "kilobytes": 1.5
     },
     {
       "name": "blink::XHRReplayData",
@@ -67,19 +67,14 @@
       "kilobytes": 1.4
     },
     {
-      "name": "DOMRectReadOnly",
-      "objects": 24,
-      "kilobytes": 1.3
-    },
-    {
       "name": "MessagePort",
       "objects": 9,
       "kilobytes": 1.3
     },
     {
-      "name": "InteractionContentfulPaint",
-      "objects": 13,
-      "kilobytes": 1.3
+      "name": "DOMRectReadOnly",
+      "objects": 22,
+      "kilobytes": 1.2
     },
     {
       "name": "blink::ComputedStyleBase::StyleSurroundData",
@@ -92,20 +87,25 @@
       "kilobytes": 1.2
     },
     {
+      "name": "InteractionContentfulPaint",
+      "objects": 11,
+      "kilobytes": 1.1
+    },
+    {
       "name": "LayoutShift",
-      "objects": 8,
-      "kilobytes": 1.2
+      "objects": 7,
+      "kilobytes": 1
     },
     {
       "name": "(object shape)",
-      "objects": 42,
+      "objects": 46,
       "kilobytes": 0.9
     }
   ],
   "snapshots": [
     {
       "label": "Main menu, before any match",
-      "jsHeapUsedMb": 5,
+      "jsHeapUsedMb": 5.01,
       "domNodes": 291,
       "jsEventListeners": 177,
       "documents": 1,
@@ -115,7 +115,7 @@
     },
     {
       "label": "Main menu, after cycle 1",
-      "jsHeapUsedMb": 7.33,
+      "jsHeapUsedMb": 7.39,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -135,7 +135,7 @@
     },
     {
       "label": "Main menu, after cycle 2",
-      "jsHeapUsedMb": 7.53,
+      "jsHeapUsedMb": 7.6,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -155,7 +155,7 @@
     },
     {
       "label": "Main menu, after cycle 3",
-      "jsHeapUsedMb": 7.68,
+      "jsHeapUsedMb": 7.76,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -175,7 +175,7 @@
     },
     {
       "label": "Main menu, after cycle 4",
-      "jsHeapUsedMb": 7.87,
+      "jsHeapUsedMb": 7.95,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -195,7 +195,7 @@
     },
     {
       "label": "Main menu, after cycle 5",
-      "jsHeapUsedMb": 7.98,
+      "jsHeapUsedMb": 8.06,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -217,31 +217,31 @@
   "cycles": [
     {
       "cycle": 1,
-      "jsHeapUsedMbWhilePlaying": 10.1,
+      "jsHeapUsedMbWhilePlaying": 9.54,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 2,
-      "jsHeapUsedMbWhilePlaying": 9.75,
+      "jsHeapUsedMbWhilePlaying": 9.72,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 3,
-      "jsHeapUsedMbWhilePlaying": 9.46,
+      "jsHeapUsedMbWhilePlaying": 10.61,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 4,
-      "jsHeapUsedMbWhilePlaying": 10.4,
+      "jsHeapUsedMbWhilePlaying": 10.35,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 5,
-      "jsHeapUsedMbWhilePlaying": 10.07,
+      "jsHeapUsedMbWhilePlaying": 10.57,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     }

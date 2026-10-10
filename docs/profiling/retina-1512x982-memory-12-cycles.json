@@ -19,7 +19,7 @@
     "seed": 2026
   },
   "growthFromCycle1ToLast": {
-    "jsHeapUsedMb": 1.14,
+    "jsHeapUsedMb": 1.15,
     "domNodes": 0,
     "jsEventListeners": 0,
     "liveCanvases": 0,
@@ -28,23 +28,23 @@
   "largestHeapGrowthFromCycle1ToLast": [
     {
       "name": "(code)",
-      "objects": 5528,
-      "kilobytes": 977
+      "objects": 5560,
+      "kilobytes": 980.5
     },
     {
       "name": "(string)",
-      "objects": 90,
+      "objects": 83,
       "kilobytes": 53.8
     },
     {
       "name": "system / WeakArrayList",
-      "objects": 36,
-      "kilobytes": 45.7
+      "objects": 37,
+      "kilobytes": 44.1
     },
     {
       "name": "blink::HashTrieNode<blink::CSSVariableData>",
-      "objects": 33,
-      "kilobytes": 8.8
+      "objects": 38,
+      "kilobytes": 10.1
     },
     {
       "name": "blink::NetworkResourcesData::ResourceData",
@@ -52,24 +52,19 @@
       "kilobytes": 7.6
     },
     {
-      "name": "blink::ComputedStyleBase::StyleSurroundData",
-      "objects": 20,
-      "kilobytes": 6.1
-    },
-    {
       "name": "DOMRectReadOnly",
-      "objects": 76,
-      "kilobytes": 4.2
-    },
-    {
-      "name": "LargestContentfulPaint",
-      "objects": 31,
-      "kilobytes": 4.1
+      "objects": 80,
+      "kilobytes": 4.4
     },
     {
       "name": "MessagePort",
       "objects": 27,
       "kilobytes": 4
+    },
+    {
+      "name": "LargestContentfulPaint",
+      "objects": 29,
+      "kilobytes": 3.9
     },
     {
       "name": "system / ExternalStringData",
@@ -82,30 +77,35 @@
       "kilobytes": 3.8
     },
     {
+      "name": "LayoutShift",
+      "objects": 24,
+      "kilobytes": 3.6
+    },
+    {
       "name": "PerformanceResourceTiming",
       "objects": 27,
       "kilobytes": 3.6
     },
     {
       "name": "(object shape)",
-      "objects": 94,
-      "kilobytes": 3.3
+      "objects": 99,
+      "kilobytes": 3.5
     },
     {
-      "name": "blink::StyleFetchedImage",
-      "objects": 20,
-      "kilobytes": 3.3
+      "name": "blink::ImageResource",
+      "objects": 1,
+      "kilobytes": 2.9
     },
     {
-      "name": "LayoutShift",
-      "objects": 22,
-      "kilobytes": 3.3
+      "name": "InteractionContentfulPaint",
+      "objects": 29,
+      "kilobytes": 2.9
     }
   ],
   "snapshots": [
     {
       "label": "Main menu, before any match",
-      "jsHeapUsedMb": 5,
+      "jsHeapUsedMb": 5.03,
       "domNodes": 291,
       "jsEventListeners": 177,
       "documents": 1,
@@ -115,7 +115,7 @@
     },
     {
       "label": "Main menu, after cycle 1",
-      "jsHeapUsedMb": 7.33,
+      "jsHeapUsedMb": 7.41,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -135,7 +135,7 @@
     },
     {
       "label": "Main menu, after cycle 2",
-      "jsHeapUsedMb": 7.53,
+      "jsHeapUsedMb": 7.62,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -155,7 +155,7 @@
     },
     {
       "label": "Main menu, after cycle 3",
-      "jsHeapUsedMb": 7.69,
+      "jsHeapUsedMb": 7.77,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -175,7 +175,7 @@
     },
     {
       "label": "Main menu, after cycle 4",
-      "jsHeapUsedMb": 7.87,
+      "jsHeapUsedMb": 7.96,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -195,7 +195,7 @@
     },
     {
       "label": "Main menu, after cycle 5",
-      "jsHeapUsedMb": 7.99,
+      "jsHeapUsedMb": 8.09,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -215,46 +215,6 @@
     },
     {
       "label": "Main menu, after cycle 6",
-      "jsHeapUsedMb": 8.01,
-      "domNodes": 303,
-      "jsEventListeners": 177,
-      "documents": 1,
-      "canvasesInDocument": 0,
-      "liveCanvases": [
-        "0x0",
-        "0x0",
-        "0x0",
-        "0x0",
-        "0x0",
-        "0x0",
-        "0x0"
-      ],
-      "liveWebGlContexts": [
-        "WebGL 1, active"
-      ]
-    },
-    {
-      "label": "Main menu, after cycle 7",
-      "jsHeapUsedMb": 8.03,
-      "domNodes": 303,
-      "jsEventListeners": 177,
-      "documents": 1,
-      "canvasesInDocument": 0,
-      "liveCanvases": [
-        "0x0",
-        "0x0",
-        "0x0",
-        "0x0",
-        "0x0",
-        "0x0",
-        "0x0"
-      ],
-      "liveWebGlContexts": [
-        "WebGL 1, active"
-      ]
-    },
-    {
-      "label": "Main menu, after cycle 8",
       "jsHeapUsedMb": 8.1,
       "domNodes": 303,
       "jsEventListeners": 177,
@@ -274,8 +234,48 @@
       ]
     },
     {
+      "label": "Main menu, after cycle 7",
+      "jsHeapUsedMb": 8.13,
+      "domNodes": 303,
+      "jsEventListeners": 177,
+      "documents": 1,
+      "canvasesInDocument": 0,
+      "liveCanvases": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "liveWebGlContexts": [
+        "WebGL 1, active"
+      ]
+    },
+    {
+      "label": "Main menu, after cycle 8",
+      "jsHeapUsedMb": 8.18,
+      "domNodes": 303,
+      "jsEventListeners": 177,
+      "documents": 1,
+      "canvasesInDocument": 0,
+      "liveCanvases": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ],
+      "liveWebGlContexts": [
+        "WebGL 1, active"
+      ]
+    },
+    {
       "label": "Main menu, after cycle 9",
-      "jsHeapUsedMb": 8.43,
+      "jsHeapUsedMb": 8.52,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -295,7 +295,7 @@
     },
     {
       "label": "Main menu, after cycle 10",
-      "jsHeapUsedMb": 8.45,
+      "jsHeapUsedMb": 8.57,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -315,7 +315,7 @@
     },
     {
       "label": "Main menu, after cycle 11",
-      "jsHeapUsedMb": 8.48,
+      "jsHeapUsedMb": 8.58,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -335,7 +335,7 @@
     },
     {
       "label": "Main menu, after cycle 12",
-      "jsHeapUsedMb": 8.47,
+      "jsHeapUsedMb": 8.56,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -357,73 +357,73 @@
   "cycles": [
     {
       "cycle": 1,
-      "jsHeapUsedMbWhilePlaying": 9.76,
+      "jsHeapUsedMbWhilePlaying": 10.45,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 2,
-      "jsHeapUsedMbWhilePlaying": 9.99,
+      "jsHeapUsedMbWhilePlaying": 11.2,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 3,
-      "jsHeapUsedMbWhilePlaying": 10.52,
+      "jsHeapUsedMbWhilePlaying": 11.19,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 4,
-      "jsHeapUsedMbWhilePlaying": 9.85,
+      "jsHeapUsedMbWhilePlaying": 10.68,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 5,
-      "jsHeapUsedMbWhilePlaying": 10.78,
+      "jsHeapUsedMbWhilePlaying": 10.34,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 6,
-      "jsHeapUsedMbWhilePlaying": 10.65,
+      "jsHeapUsedMbWhilePlaying": 9.78,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 7,
-      "jsHeapUsedMbWhilePlaying": 10.62,
+      "jsHeapUsedMbWhilePlaying": 11.22,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 8,
-      "jsHeapUsedMbWhilePlaying": 9.79,
+      "jsHeapUsedMbWhilePlaying": 10.84,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 9,
-      "jsHeapUsedMbWhilePlaying": 10.26,
+      "jsHeapUsedMbWhilePlaying": 10.51,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 10,
-      "jsHeapUsedMbWhilePlaying": 10.09,
+      "jsHeapUsedMbWhilePlaying": 10.97,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 11,
-      "jsHeapUsedMbWhilePlaying": 10.32,
+      "jsHeapUsedMbWhilePlaying": 11.65,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 12,
-      "jsHeapUsedMbWhilePlaying": 11.47,
+      "jsHeapUsedMbWhilePlaying": 10.6,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     }

@@ -28,68 +28,38 @@
   "largestHeapGrowthFromCycle1ToLast": [
     {
       "name": "(code)",
-      "objects": 2904,
-      "kilobytes": 573.3
+      "objects": 3023,
+      "kilobytes": 592.9
     },
     {
       "name": "system / WeakArrayList",
-      "objects": 21,
-      "kilobytes": 25.3
+      "objects": 18,
+      "kilobytes": 27
     },
     {
       "name": "(string)",
-      "objects": 82,
-      "kilobytes": 17.3
-    },
-    {
-      "name": "blink::HashTrieNode<blink::CSSVariableData>",
-      "objects": 23,
-      "kilobytes": 6.1
+      "objects": 75,
+      "kilobytes": 17.2
     },
     {
       "name": "system / ExternalStringData",
-      "objects": 3,
+      "objects": 2,
       "kilobytes": 3.8
     },
     {
-      "name": "blink::ComputedStyleBase::StyleSurroundData",
-      "objects": 10,
-      "kilobytes": 3
-    },
-    {
-      "name": "blink::ImageResource",
-      "objects": 1,
-      "kilobytes": 2.9
-    },
-    {
       "name": "blink::NetworkResourcesData::ResourceData",
-      "objects": 10,
-      "kilobytes": 2.8
+      "objects": 9,
+      "kilobytes": 2.5
     },
     {
-      "name": "blink::HeapHashTableBacking<blink::HashTable<blink::String, blink::KeyValuePair<blink::String, cppgc::internal::BasicMember<blink::NetworkResourcesData::ResourceData, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<String>, blink::HashTraits<cppgc::internal::BasicMember<blink::NetworkResourcesData::ResourceData, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<String>, blink::HeapAllocator>>",
-      "objects": 0,
-      "kilobytes": 2
-    },
-    {
-      "name": "blink::StyleFetchedImage",
-      "objects": 10,
-      "kilobytes": 1.6
-    },
-    {
-      "name": "MessagePort",
-      "objects": 10,
-      "kilobytes": 1.5
+      "name": "blink::ComputedStyleBase::StyleSurroundData",
+      "objects": 6,
+      "kilobytes": 1.8
     },
     {
       "name": "LargestContentfulPaint",
-      "objects": 11,
-      "kilobytes": 1.5
-    },
-    {
-      "name": "blink::CSSUrlData",
-      "objects": 20,
-      "kilobytes": 1.4
+      "objects": 12,
+      "kilobytes": 1.6
     },
     {
       "name": "blink::XHRReplayData",
@@ -97,15 +67,45 @@
       "kilobytes": 1.4
     },
     {
-      "name": "Je",
-      "objects": 19,
+      "name": "DOMRectReadOnly",
+      "objects": 24,
       "kilobytes": 1.3
+    },
+    {
+      "name": "MessagePort",
+      "objects": 9,
+      "kilobytes": 1.3
+    },
+    {
+      "name": "InteractionContentfulPaint",
+      "objects": 12,
+      "kilobytes": 1.2
+    },
+    {
+      "name": "LayoutShift",
+      "objects": 8,
+      "kilobytes": 1.2
+    },
+    {
+      "name": "PerformanceResourceTiming",
+      "objects": 9,
+      "kilobytes": 1.2
+    },
+    {
+      "name": "Je",
+      "objects": 15,
+      "kilobytes": 1.1
+    },
+    {
+      "name": "blink::StyleFetchedImage",
+      "objects": 6,
+      "kilobytes": 1
     }
   ],
   "snapshots": [
     {
       "label": "Main menu, before any match",
-      "jsHeapUsedMb": 5,
+      "jsHeapUsedMb": 5.05,
       "domNodes": 291,
       "jsEventListeners": 177,
       "documents": 1,
@@ -115,7 +115,7 @@
     },
     {
       "label": "Main menu, after cycle 1",
-      "jsHeapUsedMb": 7.35,
+      "jsHeapUsedMb": 7.41,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -135,7 +135,7 @@
     },
     {
       "label": "Main menu, after cycle 2",
-      "jsHeapUsedMb": 7.54,
+      "jsHeapUsedMb": 7.6,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -155,7 +155,7 @@
     },
     {
       "label": "Main menu, after cycle 3",
-      "jsHeapUsedMb": 7.69,
+      "jsHeapUsedMb": 7.76,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -175,7 +175,7 @@
     },
     {
       "label": "Main menu, after cycle 4",
-      "jsHeapUsedMb": 7.88,
+      "jsHeapUsedMb": 7.95,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -195,7 +195,7 @@
     },
     {
       "label": "Main menu, after cycle 5",
-      "jsHeapUsedMb": 8.01,
+      "jsHeapUsedMb": 8.07,
       "domNodes": 303,
       "jsEventListeners": 177,
       "documents": 1,
@@ -217,31 +217,31 @@
   "cycles": [
     {
       "cycle": 1,
-      "jsHeapUsedMbWhilePlaying": 10.51,
+      "jsHeapUsedMbWhilePlaying": 10.53,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 2,
-      "jsHeapUsedMbWhilePlaying": 10.28,
+      "jsHeapUsedMbWhilePlaying": 10.57,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 3,
-      "jsHeapUsedMbWhilePlaying": 9.55,
+      "jsHeapUsedMbWhilePlaying": 9.85,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 4,
-      "jsHeapUsedMbWhilePlaying": 10.39,
+      "jsHeapUsedMbWhilePlaying": 10.4,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 5,
-      "jsHeapUsedMbWhilePlaying": 11.48,
+      "jsHeapUsedMbWhilePlaying": 11.07,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     }
