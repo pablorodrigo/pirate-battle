@@ -3,10 +3,13 @@ import shipSheetUrl from '../../../assets/spritesheet/ships_miscellaneous_sheet.
 import shipAtlasUrl from '../../../assets/spritesheet/ships_miscellaneous_sheet.xml?url'
 import tileSheetUrl from '../../../assets/tilesheet/tiles_sheet.png'
 import tileSheetRetinaUrl from '../../../assets/tilesheet/tiles_sheet_retina.png'
-import type { ShipKind } from '../core/entities.ts'
+import type { EnemyKind } from '../config/GameplayConfig.ts'
 import { parseSparrowAtlas, type AtlasFrame } from './sparrowAtlas.ts'
 
 export type DamageStage = 'intact' | 'damaged' | 'critical' | 'wreck'
+
+/** One ship's sprites, from intact to wreck. */
+export type ShipStages = Readonly<Record<DamageStage, Texture>>
 
 export type TilePlacement = {
   readonly tile: number
@@ -18,13 +21,18 @@ export type TilePlacement = {
 }
 
 export type GameTextures = {
-  readonly ships: Readonly<Record<ShipKind, Readonly<Record<DamageStage, Texture>>>>
+  /** Each enemy kind keeps one sail color, so a glance tells who rams and who shoots. */
+  readonly ships: Readonly<Record<EnemyKind, ShipStages>>
+  /** The player's ship in every sail color the enemies leave free; each match flies one. */
+  readonly playerShips: readonly ShipStages[]
   readonly cannonBall: Texture
   /** Large, medium and small explosion. */
   readonly explosions: readonly [Texture, Texture, Texture]
   readonly flames: readonly [Texture, Texture]
   /** Sailors who jump overboard when their ship goes down. */
   readonly crew: readonly Texture[]
+  /** Rowboats beached on the islands. */
+  readonly dinghies: readonly Texture[]
   /**
    * Draws tiles onto a new canvas texture at whole-unit positions. Static
    * scenery is baked this way so neighbouring atlas texels never bleed into
@@ -41,8 +49,11 @@ export type GameTextures = {
   ) => Texture
 }
 
-/** Sail color of each ship kind: 2 is black, 3 red and 5 blue in the asset pack. */
-const SHIP_COLOR: Readonly<Record<ShipKind, number>> = { player: 5, chaser: 3, shooter: 2 }
+/** Sail color of each enemy kind in the asset pack: 2 is black and 3 red. */
+const ENEMY_COLOR: Readonly<Record<EnemyKind, number>> = { chaser: 3, shooter: 2 }
+/** The colors left for the player: white, green, blue and yellow. */
+const PLAYER_COLORS = [1, 4, 5, 6] as const
+const DINGHIES = ['dinghy_large_1', 'dinghy_large_2', 'dinghy_large_3', 'dinghy_small_1', 'dinghy_small_2', 'dinghy_small_3']
 /** Sprite n is intact; n + 6, n + 12 and n + 18 show increasing damage and the wreck. */
 const DAMAGE_OFFSET: Readonly<Record<DamageStage, number>> = { intact: 0, damaged: 6, critical: 12, wreck: 18 }
 const TILE_SIZE = 64
@@ -119,17 +130,18 @@ function createGameTextures(
     }
     return frameTexture(shipSheet.source, frame)
   }
-  const shipTextures = (kind: ShipKind) => {
-    const color = SHIP_COLOR[kind]
+  const shipStages = (color: number): ShipStages => {
     const stage = (damage: DamageStage) => fromAtlas(`ship_${color + DAMAGE_OFFSET[damage]}`)
     return { intact: stage('intact'), damaged: stage('damaged'), critical: stage('critical'), wreck: stage('wreck') }
   }
   return {
-    ships: { player: shipTextures('player'), chaser: shipTextures('chaser'), shooter: shipTextures('shooter') },
+    ships: { chaser: shipStages(ENEMY_COLOR.chaser), shooter: shipStages(ENEMY_COLOR.shooter) },
+    playerShips: PLAYER_COLORS.map(shipStages),
     cannonBall: fromAtlas('cannon_ball'),
     explosions: [fromAtlas('explosion_1'), fromAtlas('explosion_2'), fromAtlas('explosion_3')],
     flames: [fromAtlas('fire_1'), fromAtlas('fire_2')],
     crew: [1, 2, 3, 4, 5, 6].map((index) => fromAtlas(`crew_${index}`)),
+    dinghies: DINGHIES.map(fromAtlas),
     bakeTiles: (width, height, placements, options) =>
       bakeTiles(tileSheet.source, width, height, placements, options?.tiling ?? false),
   }

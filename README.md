@@ -5,7 +5,7 @@ A top-down 2D naval shooter for the browser, built with React, TypeScript and Pi
 - **Live demo:** <https://pirate-battle-nu.vercel.app/>
 - **Delivery estimate:** Sunday, October 11, 2026, by 11:00 (UTC−03:00), covering the full scope of the challenge. Recorded on October 10, 2026, before gameplay development started.
 
-Sail between islands, sink enemy ships with your cannons and score as many points as you can before time runs out. Chasers hunt you down and explode on contact; Shooters keep their distance and fire. Every match is played on a new map of islands, coasts and reefs, drawn from its seed. Finished matches go to a ranking and to your match history, served by a mock API that also runs in the published build.
+Sail between islands, sink enemy ships with your cannons and score as many points as you can before time runs out. Chasers hunt you down and explode on contact; Shooters keep their distance and fire. Every match is played on a new map of islands, coasts and reefs, drawn from its seed, and your ship hoists new colors. Finished matches go to a ranking and to your match history, served by a mock API that also runs in the published build.
 
 ## Tech stack
 

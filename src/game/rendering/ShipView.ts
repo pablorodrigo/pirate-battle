@@ -1,5 +1,5 @@
 import { Container, Graphics, Sprite, type Texture } from 'pixi.js'
-import type { DamageStage, GameTextures } from '../assets/gameTextures.ts'
+import type { DamageStage, ShipStages } from '../assets/gameTextures.ts'
 import type { Ship } from '../core/entities.ts'
 import { angleDifference } from '../core/math/geometry.ts'
 
@@ -34,17 +34,17 @@ export class ShipView {
   private readonly hull: Sprite
   private readonly flame: Sprite
   private readonly healthFill = new Graphics()
-  private readonly stages: Readonly<Record<DamageStage, Texture>>
+  private readonly stages: ShipStages
   private readonly flames: readonly Texture[]
   private stage: DamageStage = 'intact'
   private lastHitStep = Number.NEGATIVE_INFINITY
 
-  constructor(ship: Ship, textures: GameTextures) {
-    this.stages = textures.ships[ship.kind]
-    this.flames = textures.flames
+  constructor(ship: Ship, stages: ShipStages, flames: readonly [Texture, Texture]) {
+    this.stages = stages
+    this.flames = flames
     this.hull = new Sprite({ texture: this.stages.intact, anchor: 0.5 })
     this.hull.scale.set(hullScale(ship, this.stages.intact))
-    this.flame = new Sprite({ texture: textures.flames[0], anchor: { x: 0.5, y: 0.85 } })
+    this.flame = new Sprite({ texture: flames[0], anchor: { x: 0.5, y: 0.85 } })
     this.flame.visible = false
 
     const barWidth = ship.radius * 2

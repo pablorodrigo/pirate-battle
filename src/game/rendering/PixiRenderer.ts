@@ -1,9 +1,10 @@
 import { Application, Container, Graphics, GraphicsContext, Sprite, type Ticker } from 'pixi.js'
-import type { GameTextures } from '../assets/gameTextures.ts'
+import type { GameTextures, ShipStages } from '../assets/gameTextures.ts'
 import type { ArenaDefinition } from '../config/ArenaDefinition.ts'
-import type { Projectile, Ship } from '../core/entities.ts'
+import type { Projectile, Ship, ShipKind } from '../core/entities.ts'
 import type { GameEvent } from '../core/events.ts'
 import type { MapLayout } from '../core/map/MapLayout.ts'
+import { deriveSeed, SeededRandom } from '../core/math/random.ts'
 import type { World } from '../core/World.ts'
 import { EffectLayer } from './EffectLayer.ts'
 import { ShipView } from './ShipView.ts'
@@ -13,6 +14,8 @@ const MAX_RESOLUTION = 2
 const LETTERBOX_COLOR = 0x0b2a3c
 const ENEMY_SHOT_TINT = 0xffb1a3
 const TRAIL_LENGTH = 22
+/** Keeps the player's sail color apart from every other draw of the match seed. */
+const PLAYER_SHIP_SALT = 0x73686970
 
 type RendererState = 'idle' | 'running' | 'destroyed'
 
@@ -26,6 +29,8 @@ type RendererState = 'idle' | 'running' | 'destroyed'
 export class PixiRenderer {
   private readonly arena: ArenaDefinition
   private readonly textures: GameTextures
+  /** The sails the player flies this match. */
+  private readonly playerShip: ShipStages
   private readonly app = new Application()
   private readonly scene = new Container()
   private readonly terrain: Terrain
@@ -46,6 +51,13 @@ export class PixiRenderer {
   constructor(map: MapLayout, seed: number, textures: GameTextures) {
     this.arena = map.arena
     this.textures = textures
+    const { playerShips } = textures
+    const pick = new SeededRandom(deriveSeed(seed, PLAYER_SHIP_SALT)).integer(0, playerShips.length - 1)
+    const playerShip = playerShips[pick]
+    if (!playerShip) {
+      throw new Error('The player ship textures are missing.')
+    }
+    this.playerShip = playerShip
     this.terrain = new Terrain(map, seed, textures)
     this.effects = new EffectLayer(textures)
     // Attached up front so that destroying the application releases every
@@ -110,7 +122,7 @@ export class PixiRenderer {
       } else if (event.type === 'shipDestroyed') {
         const pose = this.shipViews.get(event.shipId)?.hullPose
         if (pose) {
-          const wreck = this.textures.ships[event.kind].wreck
+          const wreck = this.stagesOf(event.kind).wreck
           this.effects.sinkWreck(wreck, event.x, event.y, pose.rotation, pose.scale, now)
         }
       }
@@ -154,11 +166,15 @@ export class PixiRenderer {
     this.release()
   }
 
+  private stagesOf(kind: ShipKind): ShipStages {
+    return kind === 'player' ? this.playerShip : this.textures.ships[kind]
+  }
+
   private syncShip(ship: Ship, alpha: number, now: number): void {
     this.seenIds.add(ship.id)
     let view = this.shipViews.get(ship.id)
     if (!view) {
-      view = new ShipView(ship, this.textures)
+      view = new ShipView(ship, this.stagesOf(ship.kind), this.textures.flames)
       this.shipViews.set(ship.id, view)
       this.shipLayer.addChild(view.root)
     }

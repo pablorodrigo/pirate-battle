@@ -54,15 +54,27 @@ const DECORATION_SPACING = 56
 const DECORATION_TRIES = 12
 /** Keeps the scenery's draws apart from the map's and the spawner's. */
 const SCENERY_SALT = 0x7363656e
+/**
+ * A rowboat beached on half the islands, on a side that faces open water,
+ * its bow towards the water: `inset` from the edge to its center, away from
+ * the rounded corners and from the decorations, a little larger than the
+ * atlas draws it so it reads next to the ships.
+ */
+const BOAT = { chance: 0.5, scale: 1.25, inset: 26, corner: 40, clearance: 48, tilt: 0.35, tries: 6 } as const
+/** Boats draw from a stream of their own, so adding them never moved a decoration. */
+const BOAT_SALT = 0x626f6174
+/** Ship atlas sprites point their bow down: the turn that points it out of each side. */
+const BOW_TOWARDS: Readonly<Record<FortSide, number>> = { top: Math.PI, right: -Math.PI / 2, bottom: 0, left: Math.PI / 2 }
 /** Logical units per simulation step the water texture drifts by. */
 const WATER_DRIFT = { x: 0.12, y: 0.05 } as const
 
 /**
  * Static scenery: tiled water and, for every obstacle of the map, its ring of
  * shallow water and its art, baked together into a texture of their own that
- * this terrain owns and destroys. Decorations come from the match seed, so a
- * seed always shows the same picture. Visual only: colliders come from the
- * map and never from these sprites, and the art stays inside its obstacle.
+ * this terrain owns and destroys, plus a rowboat from the ship atlas on some
+ * beaches. Decorations and boats come from the match seed, so a seed always
+ * shows the same picture. Visual only: colliders come from the map and never
+ * from these sprites, and the art stays inside its obstacle.
  */
 export class Terrain {
   readonly root = new Container()
@@ -76,17 +88,28 @@ export class Terrain {
     this.root.addChild(this.water)
 
     const random = new SeededRandom(deriveSeed(seed, SCENERY_SALT))
+    const boats = new SeededRandom(deriveSeed(seed, BOAT_SALT))
     const arena: Rect = { x: 0, y: 0, width, height }
     for (const obstacle of map.obstacles) {
       // The shallows reach past the obstacle; nothing is drawn outside the arena.
       const frame = intersection(expandRect(obstacle.area, obstacle.kind === 'reef' ? TILE / 4 : TILE), arena)
-      const placements = [...shallowsOf(obstacle), ...artOf(obstacle, random)].map((placement) => ({
+      const { ground, props } = artOf(obstacle, random)
+      const placements = [...shallowsOf(obstacle), ...ground, ...props].map((placement) => ({
         ...placement,
         x: placement.x - frame.x,
         y: placement.y - frame.y,
       }))
       const texture = this.bake(textures, frame.width, frame.height, placements)
       this.root.addChild(new Sprite({ texture, x: frame.x, y: frame.y }))
+
+      // Atlas sprites share the cached ship sheet, so only the sprite is the terrain's.
+      const boat = beachedBoat(boats, obstacle, props)
+      const boatTexture = boat ? textures.dinghies[boat.index % textures.dinghies.length] : undefined
+      if (boat && boatTexture) {
+        const sprite = new Sprite({ texture: boatTexture, anchor: 0.5, x: boat.x, y: boat.y, rotation: boat.rotation })
+        sprite.scale.set(BOAT.scale)
+        this.root.addChild(sprite)
+      }
     }
   }
 
@@ -132,21 +155,50 @@ function shallowsOf({ kind, area }: MapObstacle): TilePlacement[] {
   ]
 }
 
-function artOf(obstacle: MapObstacle, random: SeededRandom): TilePlacement[] {
+/** The obstacle's ground tiles, and the props that stand on them: decorations or a fort. */
+function artOf(obstacle: MapObstacle, random: SeededRandom): { ground: TilePlacement[]; props: TilePlacement[] } {
   const { kind, area, coast } = obstacle
   if (kind === 'reef') {
-    return [{ tile: pick(random, REEF_ROCKS), x: area.x, y: area.y }]
+    return { ground: [{ tile: pick(random, REEF_ROCKS), x: area.x, y: area.y }], props: [] }
   }
   if (kind === 'grass') {
-    const island = GRASS.flatMap((row, r) => row.map((tile, c) => ({ tile, x: area.x + c * TILE, y: area.y + r * TILE })))
+    const ground = GRASS.flatMap((row, r) => row.map((tile, c) => ({ tile, x: area.x + c * TILE, y: area.y + r * TILE })))
     // The grass fills the middle 2×2 tiles: a fort stands over it, or plants grow on it.
     const grass = { x: area.x + TILE, y: area.y + TILE, width: TILE * 2, height: TILE * 2 }
-    const extras = random.next() < FORT_CHANCE ? fort(random, area) : decorations(random, grass, NO_COAST, 3)
-    return [...island, ...extras]
+    const props = random.next() < FORT_CHANCE ? fort(random, area) : decorations(random, grass, NO_COAST, 3)
+    return { ground, props }
   }
   const cells = Math.ceil(area.width / TILE) * Math.ceil(area.height / TILE)
   const count = Math.min(4, Math.max(1, Math.round(cells / 2.5)))
-  return [...nineSlice(SAND, area, coast), ...decorations(random, area, coast, count)]
+  return { ground: nineSlice(SAND, area, coast), props: decorations(random, area, coast, count) }
+}
+
+type BeachedBoat = { readonly index: number; readonly x: number; readonly y: number; readonly rotation: number }
+
+/** A rowboat on the sand of a side that faces open water, clear of the props, or null. */
+function beachedBoat(random: SeededRandom, obstacle: MapObstacle, props: readonly TilePlacement[]): BeachedBoat | null {
+  const { kind, area, coast } = obstacle
+  if (kind === 'reef' || random.next() >= BOAT.chance) {
+    return null
+  }
+  const sides = FORT_SIDES.filter((side) => !coast[side])
+  for (let attempt = 0; attempt < BOAT.tries && sides.length > 0; attempt += 1) {
+    const side = pick(random, sides)
+    const horizontal = side === 'top' || side === 'bottom'
+    const along = horizontal
+      ? random.range(area.x + BOAT.corner, area.x + area.width - BOAT.corner)
+      : random.range(area.y + BOAT.corner, area.y + area.height - BOAT.corner)
+    const x = side === 'left' ? area.x + BOAT.inset : side === 'right' ? area.x + area.width - BOAT.inset : along
+    const y = side === 'top' ? area.y + BOAT.inset : side === 'bottom' ? area.y + area.height - BOAT.inset : along
+    const clear = props.every((prop) => {
+      const half = (prop.size ?? TILE) / 2
+      return Math.hypot(x - (prop.x + half), y - (prop.y + half)) >= BOAT.clearance
+    })
+    if (clear) {
+      return { index: random.integer(0, 5), x, y, rotation: BOW_TOWARDS[side] + random.range(-BOAT.tilt, BOAT.tilt) }
+    }
+  }
+  return null
 }
 
 /**
