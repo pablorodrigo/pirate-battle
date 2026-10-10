@@ -69,6 +69,7 @@ describe('rules versioning', () => {
   // a ranking.
   const fingerprintsByVersion: Record<number, string> = {
     1: '75080705',
+    2: '4661939',
   }
 
   it('requires a new rules version for every balance change', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SeededRandom } from './random.ts'
+import { deriveSeed, SeededRandom } from './random.ts'
 
 describe('SeededRandom', () => {
   it('repeats the same sequence for the same seed', () => {
@@ -24,5 +24,22 @@ describe('SeededRandom', () => {
       expect(ranged).toBeGreaterThanOrEqual(-3)
       expect(ranged).toBeLessThan(5)
     }
+  })
+
+  it('draws integers within both bounds', () => {
+    const random = new SeededRandom(3)
+    const seen = new Set<number>()
+    for (let i = 0; i < 500; i += 1) {
+      const value = random.integer(2, 5)
+      expect(Number.isInteger(value)).toBe(true)
+      seen.add(value)
+    }
+    expect([...seen].sort()).toEqual([2, 3, 4, 5])
+  })
+
+  it('derives separate, reproducible streams from one seed', () => {
+    expect(deriveSeed(7, 1)).toBe(deriveSeed(7, 1))
+    expect(deriveSeed(7, 1)).not.toBe(deriveSeed(7, 2))
+    expect(new SeededRandom(deriveSeed(7, 1)).next()).not.toBe(new SeededRandom(7).next())
   })
 })

@@ -8,12 +8,14 @@ export type ScenarioShip = {
 }
 
 /**
- * Test-only setup applied before a match starts: seed, manual clock and the
- * initial placement of ships. It never edits health or score, and rules run
- * unchanged once the match starts.
+ * Test-only setup applied before a match starts: seed, map, manual clock and
+ * the initial placement of ships. It never edits health or score, and rules
+ * run unchanged once the match starts.
  */
 export type MatchScenario = {
   readonly seed?: number
+  /** `classic` pins the five fixed islands, for tests that place ships at known spots; otherwise the seed draws the map. */
+  readonly map?: 'classic' | 'generated'
   /** The simulation advances only when a test asks, never with wall-clock time. */
   readonly manualClock?: boolean
   readonly spawns?: boolean

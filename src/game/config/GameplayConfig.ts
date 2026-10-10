@@ -55,6 +55,30 @@ export type NavigationConfig = {
   readonly repathIntervalSeconds: number
 }
 
+export type IntegerRange = { readonly min: number; readonly max: number }
+
+/** How every match draws its map. Lengths are in arena units, sizes in 64-unit tiles. */
+export type MapConfig = {
+  /** Sand and grass islands, not counting reefs. */
+  readonly islandCount: IntegerRange
+  /** Single rocks that block ships and projectiles like islands. */
+  readonly reefCount: IntegerRange
+  readonly sandColumns: IntegerRange
+  readonly sandRows: IntegerRange
+  /** Chance that a map has the large grass island. */
+  readonly grassIslandChance: number
+  /** Sand islands placed against a border, as stretches of coast; the rest stay in open water. */
+  readonly coastCount: IntegerRange
+  /** Narrowest water between two obstacles, or between an obstacle and a border it does not touch. */
+  readonly minChannel: number
+  /** Open water kept around the player's start. */
+  readonly startClearance: number
+  /** Share of the arena the obstacles may cover. */
+  readonly coverage: { readonly min: number; readonly max: number }
+  /** Layouts drawn before the classic map is used instead. */
+  readonly attempts: number
+}
+
 /**
  * Every rule parameter of a match. A match runs on a frozen snapshot of this
  * object, so changing Options never affects a match in progress.
@@ -70,4 +94,5 @@ export type GameplayConfig = {
   readonly chaser: ChaserConfig
   readonly shooter: ShooterConfig
   readonly navigation: NavigationConfig
+  readonly map: MapConfig
 }

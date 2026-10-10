@@ -5,7 +5,7 @@ A top-down 2D naval shooter for the browser, built with React, TypeScript and Pi
 - **Live demo:** <https://pirate-battle-nu.vercel.app/>
 - **Delivery estimate:** Sunday, October 11, 2026, by 11:00 (UTC−03:00), covering the full scope of the challenge. Recorded on October 10, 2026, before gameplay development started.
 
-Sail between islands, sink enemy ships with your cannons and score as many points as you can before time runs out. Chasers hunt you down and explode on contact; Shooters keep their distance and fire. Finished matches go to a ranking and to your match history, served by a mock API that also runs in the published build.
+Sail between islands, sink enemy ships with your cannons and score as many points as you can before time runs out. Chasers hunt you down and explode on contact; Shooters keep their distance and fire. Every match is played on a new map of islands, coasts and reefs, drawn from its seed. Finished matches go to a ranking and to your match history, served by a mock API that also runs in the published build.
 
 ## Tech stack
 
@@ -70,7 +70,7 @@ The whole arena and HUD always stay on screen, and nothing covers the arena. Dra
 
 ## Gameplay configuration
 
-Every rule parameter lives in a typed configuration in `src/game/config/defaultConfig.ts`: match duration, spawn interval and distribution, health, speeds and turn rates, damage, projectile speed and lifetime, cooldowns and the Shooter's range. Systems never hard-code them; [ARCHITECTURE.md](ARCHITECTURE.md#balancing) lists the initial values. Changing the balance requires bumping `RULES_VERSION`, which a unit test enforces.
+Every rule parameter lives in a typed configuration in `src/game/config/defaultConfig.ts`: match duration, spawn interval and distribution, health, speeds and turn rates, damage, projectile speed and lifetime, cooldowns, the Shooter's range and how maps are drawn (island counts and sizes, the narrowest channel, the open water around the start and the share of the arena islands may cover). Systems never hard-code them; [ARCHITECTURE.md](ARCHITECTURE.md#balancing) lists the initial values. Changing the balance requires bumping `RULES_VERSION`, which a unit test enforces.
 
 Options exposes two of them, validated and kept after a reload:
 
@@ -158,7 +158,7 @@ Every variable is optional and public: Vite inlines `VITE_*` values into the cli
 
 ## Tests
 
-**Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, configuration, the mock database, the revision guard, the registration outbox, the match sounds and screen navigation.
+**Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, map generation, configuration, the mock database, the revision guard, the registration outbox, the match sounds and screen navigation.
 
 **End-to-end tests** (Playwright) run in three Chromium projects:
 
@@ -168,7 +168,7 @@ Every variable is optional and public: Vite inlines `VITE_*` values into the cli
 | `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. |
 | `dev-strict-mode` | Dev server in e2e mode, where React Strict Mode mounts every component twice. |
 
-The e2e build adds a test bridge (`window.__PIRATE_BATTLE__`). Before a match starts, a test can set the seed, switch to a manual clock that only advances when the test asks, and place ships. During play the bridge only reads state and advances whole simulation steps: tests press the real keys, or hold several fingers through the Chrome DevTools Protocol, and check the effects. The public build does not contain the bridge. Each test starts from a fresh browser context, and any console error or uncaught exception fails it.
+The e2e build adds a test bridge (`window.__PIRATE_BATTLE__`). Before a match starts, a test can set the seed, which also draws the map, or pin the classic map, switch to a manual clock that only advances when the test asks, and place ships. During play the bridge only reads state and advances whole simulation steps: tests press the real keys, or hold several fingers through the Chrome DevTools Protocol, and check the effects. The public build does not contain the bridge. Each test starts from a fresh browser context, and any console error or uncaught exception fails it.
 
 **Visual regression** compares the main menu, the arena in a known state and the result screen on desktop and mobile. Baselines are versioned per platform in `tests/visual/screens.spec.ts-snapshots/`: `*-darwin.png` for macOS and `*-linux.png`, generated in the official Playwright image (`mcr.microsoft.com/playwright:v1.63.0-noble`, arm64). Regenerated baselines must be reviewed before they are committed.
 
@@ -205,8 +205,8 @@ src/
   game/              Game code, free of React
     assets/          Texture loading and the ship atlas parser
     audio/           Sound effects of a match and the shared sound bank
-    config/          Typed rule configuration and the arena layout
-    core/            Rules, entities, navigation and math, free of PixiJS and the DOM
+    config/          Typed rule configuration and the classic arena layout
+    core/            Rules, entities, map generation, navigation and math, free of PixiJS and the DOM
     input/           Keyboard and touch input normalized into game actions
     rendering/       PixiJS renderer, views, terrain and effects
     runtime/         Fixed-step loop and the match runtime

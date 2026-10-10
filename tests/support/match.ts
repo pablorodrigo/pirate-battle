@@ -5,11 +5,12 @@ export const STEPS_PER_SECOND = 60
 
 /**
  * Starts a match from the main menu with a test scenario. The manual clock is
- * on by default, so the simulation only advances through `advance()`. `url`
- * can select a network scenario, e.g. `/?scenario=unavailable`.
+ * on by default, so the simulation only advances through `advance()`, and so
+ * is the classic map, whose islands the tests place ships around. `url` can
+ * select a network scenario, e.g. `/?scenario=unavailable`.
  */
 export async function startMatch(page: Page, scenario: MatchScenario = {}, url = '/'): Promise<void> {
-  const resolved: MatchScenario = { seed: 1, manualClock: true, ...scenario }
+  const resolved: MatchScenario = { seed: 1, manualClock: true, map: 'classic', ...scenario }
   await page.addInitScript((value) => {
     window.__PIRATE_BATTLE_SCENARIO__ = value
   }, resolved)

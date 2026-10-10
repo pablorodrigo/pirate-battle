@@ -11,6 +11,7 @@ function describeMatch(runtime: GameRuntime): BridgeMatchState {
   const { world } = runtime
   return {
     status: runtime.status.kind,
+    islands: world.arena.islands.map(({ x, y, width, height }) => ({ x, y, width, height })),
     step: world.step,
     score: world.score,
     player: describeShip(world.player),

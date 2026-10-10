@@ -3,6 +3,7 @@ import type { GameTextures } from '../assets/gameTextures.ts'
 import type { ArenaDefinition } from '../config/ArenaDefinition.ts'
 import type { Projectile, Ship } from '../core/entities.ts'
 import type { GameEvent } from '../core/events.ts'
+import type { MapLayout } from '../core/map/MapLayout.ts'
 import type { World } from '../core/World.ts'
 import { EffectLayer } from './EffectLayer.ts'
 import { ShipView } from './ShipView.ts'
@@ -41,10 +42,11 @@ export class PixiRenderer {
   private resizeObserver: ResizeObserver | null = null
   private state: RendererState = 'idle'
 
-  constructor(arena: ArenaDefinition, textures: GameTextures) {
-    this.arena = arena
+  /** `seed` is the match seed, from which the scenery picks its decorations. */
+  constructor(map: MapLayout, seed: number, textures: GameTextures) {
+    this.arena = map.arena
     this.textures = textures
-    this.terrain = new Terrain(arena, textures)
+    this.terrain = new Terrain(map, seed, textures)
     this.effects = new EffectLayer(textures)
     // Attached up front so that destroying the application releases every
     // display object, even when it is destroyed before init() completes.

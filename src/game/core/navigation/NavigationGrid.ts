@@ -1,4 +1,5 @@
 import type { ArenaDefinition } from '../../config/ArenaDefinition.ts'
+import type { GameplayConfig } from '../../config/GameplayConfig.ts'
 import { expandRect, rectContains, segmentRectEntry, type Point, type Rect } from '../math/geometry.ts'
 import { MinHeap } from './MinHeap.ts'
 
@@ -15,6 +16,13 @@ const NEIGHBOURS = [
 
 /** Downhill cells examined when looking for the farthest visible waypoint. */
 const LOOKAHEAD_CELLS = 8
+/** Added to the largest enemy radius to plan routes. */
+const NAVIGATION_MARGIN = 2
+
+/** Clearance enemies plan their routes with: the largest enemy radius plus a small margin. */
+export function enemyClearance(config: GameplayConfig): number {
+  return Math.max(config.chaser.radius, config.shooter.radius) + NAVIGATION_MARGIN
+}
 
 /**
  * Coarse grid over the arena with islands inflated by a ship's clearance.
@@ -83,6 +91,17 @@ export class NavigationGrid {
         }
       }
     }
+  }
+
+  /** Free cells the target cannot be reached from: water closed off from the rest. */
+  countUnreachableCells(): number {
+    let count = 0
+    for (let cell = 0; cell < this.blocked.length; cell += 1) {
+      if (this.blocked[cell] === 0 && !Number.isFinite(this.distance[cell] ?? Number.POSITIVE_INFINITY)) {
+        count += 1
+      }
+    }
+    return count
   }
 
   /** Whether the target can be reached from this point. */

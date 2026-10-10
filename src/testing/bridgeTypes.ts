@@ -20,9 +20,18 @@ export type BridgeProjectile = {
   readonly stepY: number
 }
 
+export type BridgeRect = {
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
+}
+
 /** Serializable view of a match, read by the end-to-end tests. */
 export type BridgeMatchState = {
   readonly status: 'ready' | 'running' | 'paused' | 'finished' | 'abandoned'
+  /** Colliders of the match's islands and reefs. */
+  readonly islands: readonly BridgeRect[]
   readonly step: number
   readonly score: number
   readonly player: BridgeShip

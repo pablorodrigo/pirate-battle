@@ -3,7 +3,7 @@ import type { GameplayConfig } from '../config/GameplayConfig.ts'
 import type { EndReason, GameEvent } from './events.ts'
 import type { InputSnapshot } from './input.ts'
 import { SeededRandom } from './math/random.ts'
-import { NavigationGrid } from './navigation/NavigationGrid.ts'
+import { enemyClearance, NavigationGrid } from './navigation/NavigationGrid.ts'
 import { firePlayerCannons, secondsToSteps, updateProjectiles } from './systems/combat.ts'
 import {
   fireShooterCannons,
@@ -29,9 +29,6 @@ export type MatchResult = {
   readonly activeDurationMs: number
   readonly endReason: EndReason
 }
-
-/** Clearance used to plan routes: the largest enemy radius plus a small margin. */
-const NAVIGATION_MARGIN = 2
 
 export type SessionOptions = {
   /** Disabled only by test scenarios that place every enemy themselves. */
@@ -62,8 +59,7 @@ export class GameSession {
     this.stepSeconds = 1 / config.stepsPerSecond
     this.durationSteps = secondsToSteps(config.matchDurationSeconds, config)
     this.repathSteps = Math.max(1, secondsToSteps(config.navigation.repathIntervalSeconds, config))
-    const clearance = Math.max(config.chaser.radius, config.shooter.radius) + NAVIGATION_MARGIN
-    this.navigation = new NavigationGrid(arena, config.navigation.cellSize, clearance)
+    this.navigation = new NavigationGrid(arena, config.navigation.cellSize, enemyClearance(config))
     this.navigation.setTarget(this.world.player.x, this.world.player.y)
     this.spawner = new Spawner(config, new SeededRandom(seed))
     this.spawnsEnabled = options.spawnsEnabled ?? true

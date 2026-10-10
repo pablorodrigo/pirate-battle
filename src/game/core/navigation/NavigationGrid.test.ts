@@ -79,6 +79,17 @@ describe('NavigationGrid', () => {
     expect(grid.isReachable(100, 100)).toBe(true)
   })
 
+  it('counts the water closed off from the target', () => {
+    const walled: ArenaDefinition = { ...arena, islands: [{ x: 360, y: 0, width: 80, height: 600 }] }
+    const closed = new NavigationGrid(walled, 40, 24)
+    closed.setTarget(100, 300)
+    expect(closed.countUnreachableCells()).toBeGreaterThan(0)
+
+    const open = new NavigationGrid(arena, 40, 24)
+    open.setTarget(100, 300)
+    expect(open.countUnreachableCells()).toBe(0)
+  })
+
   it('connects every fallback spawn point of the default arena to the player start', () => {
     const grid = new NavigationGrid(defaultArena, defaultGameplayConfig.navigation.cellSize, 24)
     grid.setTarget(defaultArena.playerStart.x, defaultArena.playerStart.y)

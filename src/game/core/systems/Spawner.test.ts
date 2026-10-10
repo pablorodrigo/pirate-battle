@@ -3,6 +3,7 @@ import { defaultArena } from '../../config/defaultArena.ts'
 import { createMatchConfig } from '../../config/matchSettings.ts'
 import { GameSession } from '../GameSession.ts'
 import { IDLE_INPUT } from '../input.ts'
+import { generateMap } from '../map/generateMap.ts'
 import { resolveCircleRect } from '../math/geometry.ts'
 
 const config = createMatchConfig({ matchDurationSeconds: 60, spawnIntervalSeconds: 2.5 })
@@ -51,6 +52,29 @@ describe('Spawner', () => {
           expect(resolveCircleRect(enemy.x, enemy.y, enemy.radius, island)).toBeNull()
         }
       }
+    }
+  })
+
+  it('places enemies on the open water of generated maps', () => {
+    for (const seed of [3, 17, 29]) {
+      const { arena } = generateMap(seed, config)
+      const session = new GameSession(config, arena, seed)
+      session.start()
+      let spawned = 0
+      for (let i = 0; i < intervalSteps * 4; i += 1) {
+        session.step(IDLE_INPUT)
+        for (const event of spawnsOf(session)) {
+          const enemy = session.world.enemies.find((ship) => ship.id === event.shipId)
+          if (!enemy) {
+            throw new Error('A spawned enemy is missing from the world.')
+          }
+          spawned += 1
+          for (const island of arena.islands) {
+            expect(resolveCircleRect(enemy.x, enemy.y, enemy.radius, island)).toBeNull()
+          }
+        }
+      }
+      expect(spawned).toBe(4)
     }
   })
 

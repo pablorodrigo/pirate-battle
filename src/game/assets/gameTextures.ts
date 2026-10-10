@@ -27,9 +27,16 @@ export type GameTextures = {
    * Draws tiles onto a new canvas texture at whole-unit positions. Static
    * scenery is baked this way so neighbouring atlas texels never bleed into
    * seams when the scene is scaled. The caller owns the texture and releases
-   * it with `destroyBakedTexture`.
+   * it with `destroyBakedTexture`. Only a `tiling` texture repeats past its
+   * edges; any other clamps to them, so its borders never blend in pixels of
+   * the opposite border.
    */
-  readonly bakeTiles: (width: number, height: number, placements: readonly TilePlacement[]) => Texture
+  readonly bakeTiles: (
+    width: number,
+    height: number,
+    placements: readonly TilePlacement[],
+    options?: { readonly tiling?: boolean },
+  ) => Texture
 }
 
 /** Sail color of each ship kind: 2 is black, 3 red and 5 blue in the asset pack. */
@@ -120,7 +127,8 @@ function createGameTextures(
     cannonBall: fromAtlas('cannon_ball'),
     explosions: [fromAtlas('explosion_1'), fromAtlas('explosion_2'), fromAtlas('explosion_3')],
     flames: [fromAtlas('fire_1'), fromAtlas('fire_2')],
-    bakeTiles: (width, height, placements) => bakeTiles(tileSheet.source, width, height, placements),
+    bakeTiles: (width, height, placements, options) =>
+      bakeTiles(tileSheet.source, width, height, placements, options?.tiling ?? false),
   }
 }
 
@@ -129,6 +137,7 @@ function bakeTiles(
   width: number,
   height: number,
   placements: readonly TilePlacement[],
+  tiling: boolean,
 ): Texture {
   const resolution = sheet.resolution
   const canvas = document.createElement('canvas')
@@ -155,7 +164,7 @@ function bakeTiles(
     )
   }
   const source = new CanvasSource({ resource: canvas, resolution })
-  source.addressMode = 'repeat'
+  source.addressMode = tiling ? 'repeat' : 'clamp-to-edge'
   return new Texture({ source })
 }
 

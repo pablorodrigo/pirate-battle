@@ -1,7 +1,7 @@
 import type { GameplayConfig } from './GameplayConfig.ts'
 import { deepFreeze } from './deepFreeze.ts'
 
-export const RULES_VERSION = 1
+export const RULES_VERSION = 2
 
 export const defaultGameplayConfig: GameplayConfig = deepFreeze({
   rulesVersion: RULES_VERSION,
@@ -60,5 +60,17 @@ export const defaultGameplayConfig: GameplayConfig = deepFreeze({
   navigation: {
     cellSize: 40,
     repathIntervalSeconds: 0.25,
+  },
+  map: {
+    islandCount: { min: 4, max: 5 },
+    reefCount: { min: 0, max: 2 },
+    sandColumns: { min: 2, max: 4 },
+    sandRows: { min: 2, max: 3 },
+    grassIslandChance: 0.75,
+    coastCount: { min: 1, max: 2 },
+    minChannel: 128,
+    startClearance: 128,
+    coverage: { min: 0.08, max: 0.2 },
+    attempts: 40,
   },
 })

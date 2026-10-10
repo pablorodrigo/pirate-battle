@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { RULES_VERSION } from '../game/config/defaultConfig.ts'
 import { fixtureMatches } from './fixtures.ts'
 
 const OWNER = { id: 'player-local', name: 'Captain Local' }
@@ -15,7 +16,7 @@ describe('fixtureMatches', () => {
   })
 
   it('keeps the default ruleset at five pages of ten', () => {
-    const defaultRuleset = fixtureMatches('paginated', OWNER).filter((match) => match.rulesetId === 'r1-d120-s2.5')
+    const defaultRuleset = fixtureMatches('paginated', OWNER).filter((match) => match.rulesetId === `r${RULES_VERSION}-d120-s2.5`)
     expect(defaultRuleset).toHaveLength(46)
   })
 })

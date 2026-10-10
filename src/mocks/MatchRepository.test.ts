@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { RULES_VERSION } from '../game/config/defaultConfig.ts'
 import type { CompletedMatch } from '../shared/contracts/matches.ts'
 import { MatchRepository, type MatchStore, type StoredDatabase } from './MatchRepository.ts'
 
@@ -103,7 +104,7 @@ describe('MatchRepository', () => {
 
   it('seeds fixtures of other players on first use', () => {
     const repository = new MatchRepository(memoryStore())
-    expect(repository.ranking('r1-d120-s2.5', 1, 10).totalItems).toBeGreaterThan(0)
+    expect(repository.ranking(`r${RULES_VERSION}-d120-s2.5`, 1, 10).totalItems).toBeGreaterThan(0)
     expect(repository.history('player-local', 1, 10).totalItems).toBe(0)
   })
 })

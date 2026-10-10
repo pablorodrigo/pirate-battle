@@ -22,4 +22,20 @@ export class SeededRandom {
   range(min: number, max: number): number {
     return min + (max - min) * this.next()
   }
+
+  /** Returns an integer in [min, max], both included. */
+  integer(min: number, max: number): number {
+    return min + Math.floor(this.next() * (max - min + 1))
+  }
+}
+
+/**
+ * Seed of a separate stream of draws (a murmur3 finalizer over the seed and a
+ * salt), so drawing more from one stream never shifts what another draws.
+ */
+export function deriveSeed(seed: number, salt: number): number {
+  let hash = (seed ^ salt) >>> 0
+  hash = Math.imul(hash ^ (hash >>> 16), 0x85ebca6b)
+  hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35)
+  return (hash ^ (hash >>> 16)) >>> 0
 }

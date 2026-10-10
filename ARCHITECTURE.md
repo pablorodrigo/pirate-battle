@@ -52,13 +52,30 @@ A phase that destroys the player ends the match before any later phase runs, so 
 
 **State machine.** A session is `ready`, `running`, `paused`, `finished` or `abandoned`, and only advances while `running`. Leaving the game screen, or reloading the page, abandons the match: it produces no result and is never registered.
 
-**Determinism.** Every random decision comes from one seeded generator (mulberry32) per match, so a seed and the same inputs reproduce the same match.
+**Determinism.** Every random decision comes from the match seed (mulberry32), so a seed and the same inputs reproduce the same match. The map, the spawns and the scenery's decorations draw from separate streams derived from it, so drawing more for one never shifts the others.
 
 ## Collisions
 
 - **Ships against islands and borders.** Ships are circles and islands are rectangles. After moving, a ship is pushed out of each island along the shortest direction, which makes it slide along the face, and then clamped so its whole hull stays inside the arena. Ships move at most a few units per step, far less than their radius, so they cannot tunnel.
 - **Projectiles.** Each step, a projectile tests its whole segment against every island inflated by its radius, and against every living ship of the other faction using their relative motion during the step. The earliest impact wins; on a tie the island wins, then the ship with the lowest id. The projectile stops there, is deactivated at once (so it never damages twice) and is removed at the end of the step. Projectiles also disappear when their lifetime ends or when they leave the arena.
 - **Damage and score.** `damageShip` only acts on living ships. The transition from alive to destroyed happens once: the ship stops moving, firing, colliding and taking damage immediately, and is removed at the end of the step. Only a player projectile destroying an enemy scores, so several hits in the same step still score one point, and a Chaser sinking on contact scores nothing.
+
+## Map generation
+
+Every match draws its map from its seed with `generateMap` (`src/game/core/map`). The arena keeps its size, its player start and its proportions, so the screen layouts, the HUD and the controls never change with the map.
+
+- **Obstacles.** Maps are laid out on the 64-unit tile of the art, so every obstacle is drawn without scaling. A map has four or five islands, one or two of them coasts against a border, and up to two reefs. Sand islands take 2–4 × 2–3 tiles; the grass island is the art's fixed 4 × 4 block, tried in three maps out of four and kept in about three in five, where it fits; a reef is one rock, whose collider is the rock's opaque part (54 × 46 units).
+- **Rules of a layout.** Obstacles are placed from the largest, at random positions, and a layout is kept only when all of these hold:
+  - every channel between two obstacles, and between an obstacle and a border it does not touch, is at least 128 units wide, which leaves 80 units of free water beside the largest enemy's clearance, two navigation cells;
+  - nothing lies within 128 units of the player start (the classic map has an island 112 units away);
+  - the obstacles cover 8–20% of the arena (the classic map covers 13%);
+  - the navigation grid, grown by the largest enemy radius, reaches every free cell from the start, so there is no closed water to hide in;
+  - at least four fallback spawn points remain: open water reachable from the start and at least 360 units from it, spread out by always taking the candidate farthest from those already chosen.
+
+  An obstacle gets 60 positions to fit and a layout 40 attempts; after that the classic five islands are used. Over 2,000 seeds none fell back, and a map takes about 0.3 ms to draw.
+- **Colliders.** Islands and reefs are rectangles, the same shape as the classic islands, so collisions, projectiles, navigation and spawns run unchanged on every map.
+- **Classic map.** The five fixed islands remain as the fallback and as the map of the end-to-end tests that place ships at known spots, which pin it through their scenario.
+- **Ranking.** The map is part of the rules, so this change moved `RULES_VERSION` to 2: matches on drawn maps are never ranked with those of the fixed map. The fixtures follow the current version, and the mock database's storage version moved with it, so a stored database is seeded again.
 
 ## Enemies and spawns
 
@@ -121,7 +138,7 @@ In the landscape layout the HUD header draws no box (`display: contents`), so th
 
 **Strict Mode and asynchronous initialization.** `PixiRenderer` owns a private `Application`, created with `sharedTicker: false` and `autoStart: false`. `Application.init()` is asynchronous, and in development React Strict Mode unmounts and remounts every component once, so the cleanup can run before `init()` resolves. In that case `destroy()` only marks the renderer as destroyed, and `mount()` completes the teardown as soon as `init()` settles. A discarded instance never attaches its canvas.
 
-**Terrain.** Water and islands are baked once per match into their own canvas textures, drawing the tiles at whole-unit positions, so neighbouring atlas texels never bleed into seams when the scene scales. The water is a tiling sprite that drifts on simulation time and is clipped to the arena, which keeps the arena bounds visible. Islands use the sand tiles and two decorations each; colliders always come from the arena definition, never from the art.
+**Terrain.** Water and every obstacle are baked once per match into canvas textures of their own, drawing the tiles at whole-unit positions, so neighbouring atlas texels never bleed into seams when the scene scales. The water is a tiling sprite that drifts on simulation time and is clipped to the arena, which keeps the arena bounds visible. Each obstacle is baked with its ring of shallow water, made of the pack's translucent shallow-water tiles and cut at the arena border. Sand islands use the sand nine-slice, whose coast sides carry on to the border without an edge, plus palms, rocks and sprouts; the grass island carries either a small fort (corner towers, a gate and walls whose cannons point outwards) or plants; a reef is a rock in a small patch of shallows. Decorations come from the match seed, so a seed always shows the same picture. Only the water texture repeats: the others clamp at their edges, because a repeating texture blended the far border of a coast into its near edge. Colliders always come from the map, never from the art, and the art stays inside its obstacle.
 
 **Views.** The renderer keeps one view per entity id, creates views for new entities, interpolates their pose between the last two simulated steps, and destroys the views of removed entities. A ship's sprite follows its health (intact above two thirds, damaged above one third, then critical with flames), flashes red when hit and carries a level health bar. Cannonballs have short trails.
 
@@ -197,8 +214,8 @@ Every entry is stored as `{ version, data }` and validated on read; an older ver
 
 ## Testing
 
-- **Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, configuration, the atlas parser, the mock database, the revision guard, the registration outbox, the match sounds and screen navigation.
-- **End-to-end tests** (Playwright) run against the e2e build (`vite --mode e2e`), which installs a test bridge on `window.__PIRATE_BATTLE__`. Before a match starts, a scenario can set the seed, switch to a manual clock and place ships. During the match the bridge only reads state and advances whole steps. It never writes health or score, and tests act through real key presses, or held fingers through the Chrome DevTools Protocol, since Playwright's touchscreen only taps. The public build leaves the bridge out, because the flag that loads it is replaced at build time.
+- **Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, map generation (every rule of a layout over 300 seeds, and the fallback), configuration, the atlas parser, the mock database, the revision guard, the registration outbox, the match sounds and screen navigation.
+- **End-to-end tests** (Playwright) run against the e2e build (`vite --mode e2e`), which installs a test bridge on `window.__PIRATE_BATTLE__`. Before a match starts, a scenario can set the seed, which also draws the map, pin the classic map, switch to a manual clock and place ships. During the match the bridge only reads state and advances whole steps. It never writes health or score, and tests act through real key presses, or held fingers through the Chrome DevTools Protocol, since Playwright's touchscreen only taps. The public build leaves the bridge out, because the flag that loads it is replaced at build time.
 - **Requests from the page go through MSW's service worker**, which fetches unhandled requests itself, so tests intercept asset requests with `context.route` (which sees service worker traffic) rather than `page.route`.
 - **Strict Mode** double mounting only happens in development builds, so the `dev-strict-mode` project runs the same suite against the dev server.
 - **Touch layout.** The mobile project resizes itself to seven phone screens, four in landscape and three in portrait. On each one it checks that the arena, every HUD part and every control are fully on screen and clear of one another, that controls are at least 44 px, and that the arena reaches its expected scale (in portrait, both screen edges).
@@ -211,7 +228,8 @@ All rule parameters live in a typed configuration (`src/game/config`); systems n
 
 | Parameter | Initial value |
 | --- | --- |
-| Arena | 1280 × 720 units, five tile-aligned islands |
+| Arena | 1280 × 720 units, a new map every match (see [Map generation](#map-generation)) |
+| Map | 4–5 islands (1–2 coasts), 0–2 reefs, channels of 128 units, 128 units open around the start, 8–20% covered |
 | Match duration | 120 s (Options: 60–180 s) |
 | Spawn interval | 2.5 s (Options: 1–10 s, steps of 0.5 s) |
 | Player | 100 HP, 180 units/s, π rad/s, radius 22 |
@@ -221,7 +239,7 @@ All rule parameters live in a typed configuration (`src/game/config`); systems n
 | Shooter | 40 HP, 75 units/s, 1.8 rad/s, radius 22, range 280, 10 damage every 1.5 s |
 | Spawn distance | at least 360 units from the player |
 
-Two front shots sink a Chaser and two sink a Shooter; a full broadside (45 damage) sinks either at once, which rewards positioning over holding the bow cannon. A Chaser's contact costs a quarter of the player's health, so four rams end a match. A match runs on a frozen copy of the configuration built when it starts, so changing Options only affects the next match. The `rulesVersion` identifies the balance; a fingerprint test fails when the configuration changes without a new version, so rankings never mix matches played under different rules.
+Two front shots sink a Chaser and two sink a Shooter; a full broadside (45 damage) sinks either at once, which rewards positioning over holding the bow cannon. A Chaser's contact costs a quarter of the player's health, so four rams end a match. A match runs on a frozen copy of the configuration built when it starts, so changing Options only affects the next match. The `rulesVersion` identifies the balance, now version 2, which added drawn maps; a fingerprint test fails when the configuration changes without a new version, so rankings never mix matches played under different rules. Drawn maps differ in difficulty within the bounds of their rules: the channels, the open start, the covered share and the reachable water keep matches comparable, not identical.
 
 ## Tooling decisions
 

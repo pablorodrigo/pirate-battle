@@ -8,7 +8,8 @@ import { isNetworkScenario, NETWORK_SCENARIOS, type NetworkScenario } from './ne
 const DATABASE_KEY = 'pirate-battle:mock-database'
 const SCENARIO_KEY = 'pirate-battle:network-scenario'
 const STORAGE_VERSION = 1
-const DATABASE_VERSION = 2
+/** Bumped with the rules version too, so a stored database is seeded again with fixtures of the current rules. */
+const DATABASE_VERSION = 3
 
 function parseDatabase(data: unknown): StoredDatabase | null {
   if (typeof data !== 'object' || data === null) {

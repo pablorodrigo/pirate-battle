@@ -2,9 +2,10 @@ import { useCallback, useEffect, useEffectEvent, useState, type RefObject } from
 import { loadGameTextures } from '../../game/assets/gameTextures.ts'
 import { MatchSounds } from '../../game/audio/MatchSounds.ts'
 import { soundBank } from '../../game/audio/SoundBank.ts'
-import { defaultArena } from '../../game/config/defaultArena.ts'
 import { createMatchConfig, type MatchSettings } from '../../game/config/matchSettings.ts'
 import { GameSession, type MatchResult } from '../../game/core/GameSession.ts'
+import { classicMap } from '../../game/core/map/classicMap.ts'
+import { generateMap } from '../../game/core/map/generateMap.ts'
 import { PixiRenderer } from '../../game/rendering/PixiRenderer.ts'
 import { createSeed, GameRuntime } from '../../game/runtime/GameRuntime.ts'
 import { applyScenario } from '../../game/runtime/scenario.ts'
@@ -16,11 +17,12 @@ export type GameRuntimeState =
   | { readonly status: 'error' }
 
 /**
- * Loads the match textures (shared across matches), then creates the match,
- * the renderer, its sounds and the runtime for one visit of the game screen
- * and releases all of them when the screen unmounts. A match never survives
- * leaving the screen, and combat only starts once every required resource is
- * ready. Sounds are not required: they load in the background.
+ * Loads the match textures (shared across matches), then creates the match
+ * on a map drawn from its seed, the renderer, its sounds and the runtime for
+ * one visit of the game screen and releases all of them when the screen
+ * unmounts. A match never survives leaving the screen, and combat only starts
+ * once every required resource is ready. Sounds are not required: they load
+ * in the background.
  */
 export function useGameRuntime(
   hostRef: RefObject<HTMLDivElement | null>,
@@ -59,11 +61,11 @@ export function useGameRuntime(
       }
       const scenario = hooks?.scenario() ?? {}
       const config = createMatchConfig(settings)
-      const session = new GameSession(config, defaultArena, scenario.seed ?? createSeed(), {
-        spawnsEnabled: scenario.spawns ?? true,
-      })
+      const seed = scenario.seed ?? createSeed()
+      const map = scenario.map === 'classic' ? classicMap : generateMap(seed, config)
+      const session = new GameSession(config, map.arena, seed, { spawnsEnabled: scenario.spawns ?? true })
       applyScenario(session, scenario, config)
-      const view = new PixiRenderer(defaultArena, textures)
+      const view = new PixiRenderer(map, seed, textures)
       const matchSounds = new MatchSounds(soundBank)
       const match = new GameRuntime({
         session,

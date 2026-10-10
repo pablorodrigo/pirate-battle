@@ -1,8 +1,13 @@
+import { RULES_VERSION } from '../game/config/defaultConfig.ts'
 import type { CompletedMatch, MatchConfigSnapshot, RegisteredMatch } from '../shared/contracts/matches.ts'
 
-/** Fixture rulesets: the default Options, and a faster, shorter variant to prove grouping by ruleset. */
-const DEFAULT_CONFIG: MatchConfigSnapshot = { rulesVersion: 1, matchDurationSeconds: 120, spawnIntervalSeconds: 2.5 }
-const QUICK_CONFIG: MatchConfigSnapshot = { rulesVersion: 1, matchDurationSeconds: 60, spawnIntervalSeconds: 1 }
+/** Fixture rulesets of the current rules: the default Options, and a faster, shorter variant to prove grouping by ruleset. */
+const DEFAULT_CONFIG: MatchConfigSnapshot = {
+  rulesVersion: RULES_VERSION,
+  matchDurationSeconds: 120,
+  spawnIntervalSeconds: 2.5,
+}
+const QUICK_CONFIG: MatchConfigSnapshot = { rulesVersion: RULES_VERSION, matchDurationSeconds: 60, spawnIntervalSeconds: 1 }
 
 const CAPTAINS = [
   ['player-anne', 'Anne Bonny'],

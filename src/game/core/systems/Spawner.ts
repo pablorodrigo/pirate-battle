@@ -7,7 +7,7 @@ import type { World } from '../World.ts'
 import { secondsToSteps } from './combat.ts'
 
 /** Extra water kept around a new ship, beyond its radius. */
-const SPAWN_CLEARANCE = 8
+export const SPAWN_CLEARANCE = 8
 
 /**
  * Brings in one enemy per configured interval of active play. The opening
