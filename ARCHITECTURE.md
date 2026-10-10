@@ -73,11 +73,33 @@ A phase that destroys the player ends the match before any later phase runs, so 
 `InputManager` merges every source into one snapshot per step. An action stays active while any source holds it, so releasing one key or finger never cancels another that holds the same action.
 
 - **Keyboard.** `KeyboardInput` uses `KeyboardEvent.code`, so other keyboard layouts keep the same physical keys. It captures game keys only while the match runs, never from form fields, and calls `preventDefault` only for the keys it uses. Auto-repeat never presses an action: after a pause, a key held since before the pause must be released and pressed again.
-- **Touch.** On touch screens, two clusters of round buttons sit beside the arena, never over it. Each button uses Pointer Events with pointer capture: the action stays held while the finger that pressed it is down, and `pointerup`, `pointercancel` or a lost capture release only that finger's action. The controls disable panning and zooming (`touch-action: none`), are at least 44 px, and stay out of the tab order because keyboard players have keys.
+- **Touch.** On touch screens, two clusters of round buttons sit beside the arena in landscape and below it in portrait, never over it (see [Screen layout and orientation](#screen-layout-and-orientation)). Each button uses Pointer Events with pointer capture: the action stays held while the finger that pressed it is down, and `pointerup`, `pointercancel` or a lost capture release only that finger's action. The buttons are at least 44 px and stay out of the tab order, because keyboard players have keys.
 
-## Pause and orientation
+## Pause
 
-The match pauses from the Pause button, `P` or `Escape`, when the window loses focus, when the tab is hidden, and when a touch device turns to portrait (matches are played in landscape on touch devices). While paused, frames keep rendering but never reach the fixed-step loop, so the clock, cooldowns, spawns and movement are frozen and no paused time is replayed. Input is cleared on pause and resume. Resuming always needs a player action: the Resume button, `P` or `Escape`. Turning back to landscape does not resume on its own.
+The match pauses from the Pause button, `P` or `Escape`, when the window loses focus and when the tab is hidden. While paused, frames keep rendering but never reach the fixed-step loop, so the clock, cooldowns, spawns and movement are frozen and no paused time is replayed. Input is cleared on pause and resume. Resuming always needs a player action: the Resume button, `P` or `Escape`.
+
+## Screen layout and orientation
+
+**Both orientations on touch screens.** The game also runs with the phone upright. A large share of mobile players prefer to hold the phone in portrait, according to many game sites and player forums, so the game does not force landscape. Turning the device changes the layout only: the arena keeps its size in world units, and no rule, timer or input depends on the orientation, so a rotation never pauses the match.
+
+**Nothing covers the arena.** The arena is always drawn whole, scaled to fit and centred, and the HUD and the controls only use the space the arena leaves, so neither is ever cut or drawn over the other. `useScreenLayout` picks one of three layouts from the pointer type (or touch support) and the orientation media query. The game screen exposes it as `data-layout`, and each touch layout is a CSS grid:
+
+| Layout | Arrangement |
+| --- | --- |
+| `keyboard` | The HUD in a row above the arena. |
+| `landscape` (touch) | The HUD and the controls share the two side columns: health on the left; pause, score and time on the right; the controls below them as compact triangles of 48 px buttons. The arena gets the full height of the middle column. |
+| `portrait` (touch) | The arena spans the full width, edge to edge, between the HUD above it and the controls below it, which spread out with buttons from 44 to 64 px wide (14% of the screen width). |
+
+In the landscape layout the HUD header draws no box (`display: contents`), so the grid places each of its parts in a side column while the markup stays one semantic block. In portrait, the HUD and the controls keep their size, and on a very short screen the arena's box shrinks instead; the renderer fits the arena inside whatever box it gets.
+
+**Touch gestures.** The page behaves like a game, not a document:
+
+- It selects no text and opens no long-press callout. Form fields stay selectable.
+- A double tap never zooms the page.
+- Menus keep pinch zoom.
+- The game screen sets `touch-action: none`, so no gesture on it scrolls or zooms the page.
+- iOS Safari ignores `user-scalable=no` and zooms through its own gesture events, so `useNoPageZoom` cancels `gesturestart` and `gesturechange` while the game screen is mounted, and removes the listeners when it unmounts.
 
 ## React and the game
 
@@ -179,6 +201,7 @@ Every entry is stored as `{ version, data }` and validated on read; an older ver
 - **End-to-end tests** (Playwright) run against the e2e build (`vite --mode e2e`), which installs a test bridge on `window.__PIRATE_BATTLE__`. Before a match starts, a scenario can set the seed, switch to a manual clock and place ships. During the match the bridge only reads state and advances whole steps. It never writes health or score, and tests act through real key presses, or held fingers through the Chrome DevTools Protocol, since Playwright's touchscreen only taps. The public build leaves the bridge out, because the flag that loads it is replaced at build time.
 - **Requests from the page go through MSW's service worker**, which fetches unhandled requests itself, so tests intercept asset requests with `context.route` (which sees service worker traffic) rather than `page.route`.
 - **Strict Mode** double mounting only happens in development builds, so the `dev-strict-mode` project runs the same suite against the dev server.
+- **Touch layout.** The mobile project resizes itself to seven phone screens, four in landscape and three in portrait. On each one it checks that the arena, every HUD part and every control are fully on screen and clear of one another, that controls are at least 44 px, and that the arena reaches its expected scale (in portrait, both screen edges).
 - **Visual regression** compares the main menu, the arena in a known state and the result screen, on desktop and mobile. Rendering differs between operating systems, so baselines are versioned per platform; the Linux ones come from the official Playwright image, which the CI workflow also uses, on the same arm64 architecture.
 - **Profiling** has its own Playwright configuration (`playwright.profile.config.ts`), outside the regular suite. It drives Google Chrome, whose headless mode renders on the real GPU, while a bot plays through keyboard events; [docs/PROFILING.md](docs/PROFILING.md) describes the method and the results.
 

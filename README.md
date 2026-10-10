@@ -57,9 +57,14 @@ Moving, turning and firing can be combined, with keys or with several fingers. H
 
 Sound effects are on by default. Options turns them off, and so does the switch in the pause menu, which applies at once.
 
-The match pauses on its own when the window loses focus, the tab is hidden or, on a touch device, the screen turns to portrait. Resuming always needs an explicit action, and keys or fingers held through a pause must be pressed again.
+The match pauses on its own when the window loses focus or the tab is hidden. Resuming always needs an explicit action, and keys or fingers held through a pause must be pressed again.
 
-**Supported orientation:** on phones and tablets the match is played in landscape, with the touch controls beside the arena. Menus work in both orientations.
+**Phones and tablets** play in both orientations; turning the device changes the layout, never the match:
+
+- **Landscape:** the HUD and the touch controls share the columns beside the arena, which gets the full height.
+- **Portrait:** the arena spans the full width, with the HUD above it and the controls below it.
+
+The whole arena and HUD always stay on screen, and nothing covers the arena. Dragging a finger never selects text, and while a match is on screen the page never scrolls or zooms.
 
 ## Gameplay configuration
 
@@ -158,7 +163,7 @@ Every variable is optional and public: Vite inlines `VITE_*` values into the cli
 | Project | Target |
 | --- | --- |
 | `desktop-chromium` | Optimized e2e build served by `vite preview`, desktop viewport. |
-| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. |
+| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. |
 | `dev-strict-mode` | Dev server in e2e mode, where React Strict Mode mounts every component twice. |
 
 The e2e build adds a test bridge (`window.__PIRATE_BATTLE__`). Before a match starts, a test can set the seed, switch to a manual clock that only advances when the test asks, and place ships. During play the bridge only reads state and advances whole simulation steps: tests press the real keys, or hold several fingers through the Chrome DevTools Protocol, and check the effects. The public build does not contain the bridge. Each test starts from a fresh browser context, and any console error or uncaught exception fails it.

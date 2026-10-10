@@ -1,6 +1,6 @@
 # Test report
 
-Last full run: October 10, 2026, on commit `8260e8c`.
+Last full run: October 10, 2026, on commit `0c69ddc`.
 
 ## Summary
 
@@ -10,9 +10,9 @@ Last full run: October 10, 2026, on commit `8260e8c`.
 | Lint | `npm run lint` | Passed, no warnings | Passed, no warnings |
 | Unit tests | `npm run test:unit` | 97 passed in 19 files | 97 passed in 19 files |
 | Production build | `npm run build` | Passed | Passed |
-| End-to-end and visual tests | `npm run test:e2e` | 135 passed, 6 skipped, in 2.2 min | 135 passed, 6 skipped, in 6.1 min |
+| End-to-end and visual tests | `npm run test:e2e` | 148 passed, 20 skipped, in 3.8 min | 148 passed, 20 skipped, in 7.5 min |
 
-Six tests are skipped on purpose in every run: the three touch-control tests in the two projects without a touch screen (`desktop-chromium` and `dev-strict-mode`). `mobile-chromium` runs them.
+Twenty tests are skipped on purpose in every run. They are the ten touch tests (three touch-control tests and seven touch-layout tests) in the two projects without a touch screen, `desktop-chromium` and `dev-strict-mode`. `mobile-chromium` runs them.
 
 ## Environments
 
@@ -24,7 +24,7 @@ Six tests are skipped on purpose in every run: the three touch-control tests in 
 | Workers | 4 | 2 |
 | Visual baselines | `*-darwin.png` | `*-linux.png` |
 
-The Linux run uses the image, architecture and commands of the CI workflow (`.github/workflows/ci.yml`), with `CI=true`: dependencies come from a clean `npm ci`, `test.only` fails the run and the servers are always started fresh.
+The Linux run uses the image, architecture and commands of the CI workflow (`.github/workflows/ci.yml`), with `CI=true`. Dependencies come from a clean `npm ci`, `test.only` fails the run and the servers are always started fresh. Each test gets 60 s and each assertion 10 s, because WebGL runs in software without a GPU (30 s and 5 s locally).
 
 ## HTML report and traces
 
@@ -37,9 +37,9 @@ The Linux run uses the image, architecture and commands of the CI workflow (`.gi
 
 | Project | Target | Tests |
 | --- | --- | ---: |
-| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 48 (45 end-to-end, 3 visual) |
-| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch | 48 (45 end-to-end, 3 visual) |
-| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 45 (end-to-end only) |
+| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 57 (54 end-to-end, 3 visual) |
+| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 57 (54 end-to-end, 3 visual) |
+| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 54 (end-to-end only) |
 
 Every test starts from a fresh browser context. Matches use fixed seeds and, where timing matters, a manual clock that advances whole simulation steps; tests act through real key presses or, on touch, held fingers sent through the Chrome DevTools Protocol, and check the effects. Any console error or uncaught exception fails a test unless that test expects it.
 
@@ -55,12 +55,13 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | 6 | Ending by time and by death, the simulation stopping and a clean restart | `match-flow.spec.ts` |
 | 7 | Pause, loss of focus and resuming without the clock advancing | `pause.spec.ts`, `match-flow.spec.ts`, `touch.spec.ts` |
 | 8 | The result and its persistence after a reload | `registration.spec.ts` |
-| 9 | Abandoning a match, repeated navigation between screens and touch controls | `match-flow.spec.ts`, `smoke.spec.ts`, `touch.spec.ts` |
+| 9 | Abandoning a match, repeated navigation between screens and touch controls | `match-flow.spec.ts`, `smoke.spec.ts`, `touch.spec.ts`, `touch-layout.spec.ts` |
 | 10 | Ranking and Match History: queries, pages, loading, empty and error states | `leaderboards.spec.ts`, `network-scenarios.spec.ts` |
 | 11 | Registering a match, both tabs updating, and recovering a pending registration after a reload | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | 12 | Resending after a timeout without duplicates; late responses never replacing newer data | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | — | Visual regression of the menu, the arena in a stable state and the result screen | `visual/screens.spec.ts` |
 | — | Sound effects: the setting, and files that load only once a match starts and only while sound is on | `audio.spec.ts`, `options.spec.ts` |
+| — | Touch layout in both orientations, nothing over the arena; no text selection or page zoom | `touch-layout.spec.ts`, `touch.spec.ts`, `smoke.spec.ts` |
 
 ## Unit tests
 
@@ -80,6 +81,9 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | --- | --- | --- | --- |
 | The Linux run in the CI image | `registration.spec.ts` › "keeps a pending registration through a reload…" on `mobile-chromium`: Match History stayed empty. | The trace showed `POST /api/matches` answered with 404 by the static server. A scheduled retry of the old page fired while the test navigated away, after MSW had stopped serving that page at `beforeunload`, and the 404 marked the match as rejected. | `30c1417`: the registration coordinator sends nothing more once the page starts unloading. Unit tests reproduce the race deterministically. |
 | Profiling | Memory held after leaving a match | PixiJS's batch pool kept the baked terrain canvases; a closure kept the first game screen. See [PROFILING.md](PROFILING.md). | `b37b207`, `a8deeaa` |
+| A manual test of the published build on an iPhone | In landscape the arena filled about a third of the screen. In portrait it was squeezed to a sliver once the match resumed. Dragging a finger selected text. | A HUD row and two wide control columns took the space, portrait had no layout of its own, and only the controls disabled selection. | `7c93ab9`, `7acd130`, `389de04`; `touch-layout.spec.ts` now checks seven phone screens. |
+| The Linux run in the CI image | Two `mobile-chromium` tests timed out: `pause.spec.ts` › "pauses from the keyboard…" and `options.spec.ts` › "turns sound effects off…". The traces show every step completing, each one taking seconds. | The larger landscape arena means more pixels drawn and composited in software, at the Pixel 7's density, because CI has no GPU. The mobile project's shared tests ran 81% longer than before; desktop was unchanged. A measurement of the game screen found no layout or script work repeated every frame. | In CI only, `playwright.config.ts` allows 60 s per test and 10 s per assertion. The checks are unchanged. |
+| A local run | `touch.spec.ts` › "turns with the on-screen buttons" failed once under parallel load, then passed in 30 repeated runs. | Not confirmed, because that run kept no trace. The touch tests ran simulation steps right after sending a touch through the Chrome DevTools Protocol, without waiting for the press to register. | `892c140`: each step waits until the button shows the press or the release. |
 
 ## Reproducing
 
