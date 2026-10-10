@@ -12,3 +12,9 @@
   font-size: clamp(2rem, 6vw, 3.5rem);
   letter-spacing: 0.04em;
 }
+
+.play {
+  justify-self: center;
+  min-width: 12rem;
+  font-size: 1.25rem;
+}

@@ -16,6 +16,7 @@
     "test:report": "playwright show-report"
   },
   "dependencies": {
+    "pixi.js": "8.22.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
