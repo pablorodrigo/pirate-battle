@@ -9,3 +9,29 @@
   justify-content: flex-end;
   padding: 0.5rem 1rem;
 }
+
+.arena {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Absolutely positioned so the canvas size never feeds back into the size
+   observed by the renderer's ResizeObserver. */
+.host {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.host canvas {
+  display: block;
+}
+
+.message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  margin: 0;
+}

@@ -1,21 +1,23 @@
 import { Application, Container, Graphics, type Ticker } from 'pixi.js'
 import type { ArenaDefinition } from '../config/ArenaDefinition.ts'
+import type { Ship } from '../core/entities.ts'
+import type { GameEvent } from '../core/events.ts'
+import type { World } from '../core/World.ts'
+import { ShipView } from './ShipView.ts'
 
 const MAX_RESOLUTION = 2
-const SHIP_SPIN_RADIANS_PER_SECOND = Math.PI / 4
 
 const COLORS = {
   letterbox: 0x0b2a3c,
   water: 0x1f6f99,
   sand: 0xe8d29b,
   shore: 0xc9a65f,
-  ship: 0xf4efe1,
 } as const
 
 type RendererState = 'idle' | 'running' | 'destroyed'
 
 /**
- * Owns the PixiJS application of one game screen.
+ * Owns the PixiJS application of one game screen and draws the match state.
  *
  * `Application.init()` is asynchronous, so React may clean up (Strict Mode
  * does it on purpose) before initialization finishes. `destroy()` is safe in
@@ -24,9 +26,11 @@ type RendererState = 'idle' | 'running' | 'destroyed'
 export class PixiRenderer {
   private readonly arena: ArenaDefinition
   private readonly app = new Application()
-  private readonly world = new Container()
+  private readonly scene = new Container()
   private readonly terrain = new Container()
-  private readonly ship = new Graphics()
+  private readonly shipLayer = new Container()
+  private readonly shipViews = new Map<number, ShipView>()
+  private readonly seenIds = new Set<number>()
   private resizeObserver: ResizeObserver | null = null
   private state: RendererState = 'idle'
 
@@ -34,8 +38,8 @@ export class PixiRenderer {
     this.arena = arena
     // Attached up front so that destroying the application releases every
     // display object, even when it is destroyed before init() completes.
-    this.world.addChild(this.terrain, this.ship)
-    this.app.stage.addChild(this.world)
+    this.scene.addChild(this.terrain, this.shipLayer)
+    this.app.stage.addChild(this.scene)
   }
 
   get rendererName(): string {
@@ -61,13 +65,37 @@ export class PixiRenderer {
     }
 
     this.state = 'running'
-    this.buildScene()
+    this.drawTerrain()
     host.appendChild(this.app.canvas)
     this.resizeObserver = new ResizeObserver(() => this.fitToHost(host))
     this.resizeObserver.observe(host)
     this.fitToHost(host)
-    this.app.ticker.add(this.onTick)
     this.app.start()
+  }
+
+  /** Runs `callback` before every render with the raw frame time in milliseconds. */
+  onFrame(callback: (elapsedMs: number) => void): () => void {
+    const listener = (ticker: Ticker): void => callback(ticker.elapsedMS)
+    this.app.ticker.add(listener)
+    return () => {
+      if (this.state === 'running') {
+        this.app.ticker.remove(listener)
+      }
+    }
+  }
+
+  render(world: World, alpha: number, _events: readonly GameEvent[]): void {
+    this.seenIds.clear()
+    this.syncShip(world.player, alpha)
+    for (const enemy of world.enemies) {
+      this.syncShip(enemy, alpha)
+    }
+    for (const [id, view] of this.shipViews) {
+      if (!this.seenIds.has(id)) {
+        view.destroy()
+        this.shipViews.delete(id)
+      }
+    }
   }
 
   destroy(): void {
@@ -79,6 +107,18 @@ export class PixiRenderer {
     this.resizeObserver?.disconnect()
     this.resizeObserver = null
     this.releaseApplication()
+    this.shipViews.clear()
+  }
+
+  private syncShip(ship: Ship, alpha: number): void {
+    this.seenIds.add(ship.id)
+    let view = this.shipViews.get(ship.id)
+    if (!view) {
+      view = new ShipView(ship)
+      this.shipViews.set(ship.id, view)
+      this.shipLayer.addChild(view.root)
+    }
+    view.update(ship, alpha)
   }
 
   private releaseApplication(): void {
@@ -87,7 +127,7 @@ export class PixiRenderer {
     this.app.destroy({ removeView: true }, { children: true, context: true })
   }
 
-  private buildScene(): void {
+  private drawTerrain(): void {
     const { width, height, islands } = this.arena
     const water = new Graphics().rect(0, 0, width, height).fill(COLORS.water)
     const islandShapes = islands.map((island) =>
@@ -96,10 +136,7 @@ export class PixiRenderer {
         .fill(COLORS.sand)
         .stroke({ width: 4, color: COLORS.shore }),
     )
-
     this.terrain.addChild(water, ...islandShapes)
-    this.ship.poly([28, 0, -18, -16, -10, 0, -18, 16]).fill(COLORS.ship)
-    this.ship.position.set(this.arena.playerStart.x, this.arena.playerStart.y)
   }
 
   /** Scales the logical arena uniformly and centers it inside the host. */
@@ -111,14 +148,10 @@ export class PixiRenderer {
     }
     this.app.renderer.resize(width, height)
     const scale = Math.min(width / this.arena.width, height / this.arena.height)
-    this.world.scale.set(scale)
-    this.world.position.set(
+    this.scene.scale.set(scale)
+    this.scene.position.set(
       (width - this.arena.width * scale) / 2,
       (height - this.arena.height * scale) / 2,
     )
-  }
-
-  private readonly onTick = (ticker: Ticker): void => {
-    this.ship.rotation += SHIP_SPIN_RADIANS_PER_SECOND * (ticker.deltaMS / 1000)
   }
 }
