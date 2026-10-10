@@ -1,3 +1,4 @@
+import { ApiStatus } from './ApiStatus.tsx'
 import styles from './MainMenu.module.css'
 
 type MainMenuProps = {
@@ -11,6 +12,7 @@ export function MainMenu({ onPlay }: MainMenuProps) {
       <button type="button" className={styles.play} onClick={onPlay}>
         Play
       </button>
+      <ApiStatus />
     </main>
   )
 }

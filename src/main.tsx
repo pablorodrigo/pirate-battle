@@ -1,6 +1,9 @@
+import { QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App.tsx'
+import { startMockApi } from './app/bootstrapMocks.ts'
+import { createQueryClient } from './app/queryClient.ts'
 import './shared/styles/global.css'
 
 const rootElement = document.getElementById('root')
@@ -8,8 +11,20 @@ if (!rootElement) {
   throw new Error('Missing #root element in index.html')
 }
 
+// The game must stay playable without the API, so a failed mock start is
+// reported and the app renders anyway.
+try {
+  await startMockApi()
+} catch (error) {
+  console.warn('The mock API could not start.', error)
+}
+
+const queryClient = createQueryClient()
+
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
   </StrictMode>,
 )

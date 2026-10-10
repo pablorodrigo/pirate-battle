@@ -7,6 +7,12 @@ test('opens on the main menu', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Pirate Battle' })).toBeVisible()
 })
 
+test('reaches the mock API through Axios and TanStack Query', async ({ page }) => {
+  await page.goto('/')
+
+  await expect(page.getByRole('status')).toHaveText('Mock API: online')
+})
+
 test('mounts one WebGL canvas per visit and removes it on exit', async ({ page }) => {
   await page.goto('/')
 

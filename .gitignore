@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Environment overrides (.env.example documents the variables)
+.env
+.env.*
+!.env.example
+
 # Playwright
 /test-results/
 /playwright-report/

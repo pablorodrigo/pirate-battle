@@ -48,6 +48,66 @@
           }
         ]
       }
+    },
+    {
+      "files": ["src/shared/contracts/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["react", "react-dom", "react-dom/*", "pixi.js", "pixi.js/*", "axios", "msw", "msw/*", "@tanstack/*"],
+                "message": "Contracts are plain types and validators shared by the client and the mocks."
+              },
+              {
+                "group": ["**/app/**", "**/features/**", "**/mocks/**", "**/shared/api/**", "**/rendering/**", "**/runtime/**", "**/input/**"],
+                "message": "Contracts may only depend on other contracts and on game configuration."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/shared/api/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["react", "react-dom", "react-dom/*", "pixi.js", "pixi.js/*", "msw", "msw/*", "@tanstack/*"],
+                "message": "The HTTP layer must not depend on React, rendering or the mock implementation."
+              },
+              {
+                "group": ["**/app/**", "**/features/**", "**/mocks/**", "**/game/**"],
+                "message": "The HTTP layer must not depend on application, game or mock modules."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/mocks/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["react", "react-dom", "react-dom/*", "pixi.js", "pixi.js/*", "axios", "@tanstack/*"],
+                "message": "Mocks emulate the server and must not depend on client libraries."
+              },
+              {
+                "group": ["**/app/**", "**/features/**"],
+                "message": "Mocks must not depend on application modules."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
