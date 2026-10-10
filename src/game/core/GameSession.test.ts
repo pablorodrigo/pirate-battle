@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
+import type { GameplayConfig } from '../config/GameplayConfig.ts'
 import { defaultArena } from '../config/defaultArena.ts'
-import { createMatchConfig } from '../config/matchSettings.ts'
+import { defaultGameplayConfig } from '../config/defaultConfig.ts'
 import { GameSession } from './GameSession.ts'
 import { IDLE_INPUT, type InputSnapshot } from './input.ts'
 
-const config = createMatchConfig({ matchDurationSeconds: 60, spawnIntervalSeconds: 10 })
+// No enemy spawns during these one-minute matches.
+const config: GameplayConfig = {
+  ...defaultGameplayConfig,
+  matchDurationSeconds: 60,
+  spawn: { ...defaultGameplayConfig.spawn, intervalSeconds: 1000 },
+}
 const thrust: InputSnapshot = { ...IDLE_INPUT, thrust: true }
 
 function runSteps(session: GameSession, count: number, input: InputSnapshot = IDLE_INPUT): void {

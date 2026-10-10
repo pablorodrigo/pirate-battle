@@ -37,7 +37,8 @@ export type PlayerShip = ShipState & {
 }
 
 export type NavigationState = {
-  waypoints: Point[]
+  /** Point to steer at while the player is out of sight; null means none yet. */
+  waypoint: Point | null
   nextRepathAt: number
 }
 
@@ -111,7 +112,7 @@ export function createChaserShip(id: number, stats: ShipStats, placement: ShipPl
   return {
     ...shipState(id, 'enemy', stats, placement),
     kind: 'chaser',
-    navigation: { waypoints: [], nextRepathAt: 0 },
+    navigation: { waypoint: null, nextRepathAt: 0 },
   }
 }
 
@@ -124,7 +125,7 @@ export function createShooterShip(
   return {
     ...shipState(id, 'enemy', stats, placement),
     kind: 'shooter',
-    navigation: { waypoints: [], nextRepathAt: 0 },
+    navigation: { waypoint: null, nextRepathAt: 0 },
     cannonReadyAt: firstShotAt,
     engaged: false,
   }

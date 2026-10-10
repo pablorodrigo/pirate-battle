@@ -12,6 +12,20 @@ export function secondsToSteps(seconds: number, config: GameplayConfig): number 
   return Math.round(seconds * config.stepsPerSecond)
 }
 
+/** True when a projectile of this radius could fly between the points without hitting an island. */
+export function hasClearShot(
+  world: World,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  radius: number,
+): boolean {
+  return world.arena.islands.every(
+    (island) => segmentRectEntry(fromX, fromY, toX, toY, expandRect(island, radius)) === null,
+  )
+}
+
 /**
  * Applies damage to a living ship. The alive → destroyed transition happens
  * once, and only a player projectile destroying an enemy scores a point.

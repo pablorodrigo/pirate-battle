@@ -2,8 +2,17 @@ import type { ArenaDefinition } from '../config/ArenaDefinition.ts'
 import type { GameplayConfig } from '../config/GameplayConfig.ts'
 import type { EndReason, GameEvent } from './events.ts'
 import type { InputSnapshot } from './input.ts'
-import { firePlayerCannons, updateProjectiles } from './systems/combat.ts'
+import { SeededRandom } from './math/random.ts'
+import { NavigationGrid } from './navigation/NavigationGrid.ts'
+import { firePlayerCannons, secondsToSteps, updateProjectiles } from './systems/combat.ts'
+import {
+  fireShooterCannons,
+  resolveChaserContacts,
+  separateEnemies,
+  updateEnemyIntents,
+} from './systems/enemies.ts'
 import { keepOnOpenWater, moveShip } from './systems/movement.ts'
+import { Spawner } from './systems/Spawner.ts'
 import { World } from './World.ts'
 
 export type PauseReason = 'manual' | 'blur' | 'hidden'
@@ -21,10 +30,13 @@ export type MatchResult = {
   readonly endReason: EndReason
 }
 
+/** Clearance used to plan routes: the largest enemy radius plus a small margin. */
+const NAVIGATION_MARGIN = 2
+
 /**
  * One match: the rules state machine around a World. It only advances while
  * running, one fixed step at a time, so the outcome never depends on the
- * frame rate.
+ * frame rate. Everything random comes from the match seed.
  */
 export class GameSession {
   readonly config: GameplayConfig
@@ -32,6 +44,9 @@ export class GameSession {
   readonly world: World
   readonly stepSeconds: number
   readonly durationSteps: number
+  private readonly navigation: NavigationGrid
+  private readonly spawner: Spawner
+  private readonly repathSteps: number
   private currentStatus: SessionStatus = { kind: 'ready' }
 
   constructor(config: GameplayConfig, arena: ArenaDefinition, seed: number) {
@@ -39,7 +54,12 @@ export class GameSession {
     this.seed = seed
     this.world = new World(config, arena)
     this.stepSeconds = 1 / config.stepsPerSecond
-    this.durationSteps = Math.round(config.matchDurationSeconds * config.stepsPerSecond)
+    this.durationSteps = secondsToSteps(config.matchDurationSeconds, config)
+    this.repathSteps = Math.max(1, secondsToSteps(config.navigation.repathIntervalSeconds, config))
+    const clearance = Math.max(config.chaser.radius, config.shooter.radius) + NAVIGATION_MARGIN
+    this.navigation = new NavigationGrid(arena, config.navigation.cellSize, clearance)
+    this.navigation.setTarget(this.world.player.x, this.world.player.y)
+    this.spawner = new Spawner(config, new SeededRandom(seed))
   }
 
   get status(): SessionStatus {
@@ -93,33 +113,51 @@ export class GameSession {
   /**
    * Advances the match by one fixed step. Does nothing unless it is running.
    *
-   * Order: intents, movement and collisions, projectiles already in flight,
-   * new shots, then time. A phase that destroys the player ends the match
-   * before any later phase runs.
+   * Order: intents, movement and collisions (including Chaser contact),
+   * projectiles already in flight, new shots and spawns, then time. A phase
+   * that destroys the player ends the match before any later phase runs, so
+   * death wins over a timeout reached in the same step.
    */
   step(input: InputSnapshot): void {
     if (this.currentStatus.kind !== 'running') {
       return
     }
-    const { world, config } = this
-    world.savePreviousPoses()
-
+    const { world, config, stepSeconds } = this
     const player = world.player
+    world.savePreviousPoses()
+    if (world.step % this.repathSteps === 0) {
+      this.navigation.setTarget(player.x, player.y)
+    }
+
     player.turnIntent = input.turn
     player.throttle = input.thrust
+    updateEnemyIntents(world, this.navigation, config, stepSeconds)
 
-    moveShip(player, this.stepSeconds)
+    moveShip(player, stepSeconds)
+    for (const enemy of world.enemies) {
+      moveShip(enemy, stepSeconds)
+    }
+    separateEnemies(world)
     keepOnOpenWater(player, world.arena)
+    for (const enemy of world.enemies) {
+      keepOnOpenWater(enemy, world.arena)
+    }
+    resolveChaserContacts(world, config)
+    if (this.endIfPlayerDestroyed()) {
+      return
+    }
 
     updateProjectiles(world)
     if (this.endIfPlayerDestroyed()) {
       return
     }
 
-    // Nothing is fired at the closing instant of the match.
+    // Nothing is fired or spawned at the closing instant of the match.
     const isLastStep = world.step + 1 >= this.durationSteps
     if (!isLastStep) {
       firePlayerCannons(world, input, config)
+      fireShooterCannons(world, config)
+      this.spawner.update(world, this.navigation)
     }
 
     world.step += 1
