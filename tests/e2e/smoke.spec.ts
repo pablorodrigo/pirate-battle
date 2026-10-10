@@ -23,7 +23,8 @@ test('mounts one WebGL canvas per visit and removes it on exit', async ({ page }
     await expect(gameCanvas).toHaveAttribute('data-renderer', 'webgl')
     await expect(page.locator('canvas')).toHaveCount(1)
 
-    await page.getByRole('button', { name: 'Main Menu' }).click()
+    await page.getByRole('button', { name: 'Pause' }).click()
+    await page.getByRole('dialog', { name: 'Paused' }).getByRole('button', { name: 'Main Menu' }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'Pirate Battle' })).toBeVisible()
     await expect(page.locator('canvas')).toHaveCount(0)
   }
