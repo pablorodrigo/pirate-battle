@@ -1,8 +1,9 @@
 import type { ArenaDefinition } from './ArenaDefinition.ts'
 import { deepFreeze } from './deepFreeze.ts'
 
-// Islands are multiples of the 64-unit tile of the art, so the tile sheet can
-// draw them without scaling.
+// The classic map. Its islands are multiples of the 64-unit tile of the art, so
+// the tile sheet can draw them without scaling. Drawn maps keep its size and
+// its player start.
 export const defaultArena: ArenaDefinition = deepFreeze({
   width: 1280,
   height: 720,

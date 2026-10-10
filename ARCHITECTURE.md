@@ -28,7 +28,7 @@ React lists ─► TanStack Query ─► Axios ─► MSW handlers ─► mock d
 | Other `game/` modules (`assets`, `audio`, `input`, `rendering`, `runtime`) | PixiJS, `game/core`, `game/config`, each other | React, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api` |
 | `shared/contracts` | Other contracts, `game/config` | React, PixiJS, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api`, game rendering and runtime |
 | `shared/api` | Axios, `shared/contracts` | React, PixiJS, MSW, TanStack Query, `app`, `features`, `game`, `mocks` |
-| `mocks` | MSW, `shared/contracts`, `shared/storage`, `shared/api` configuration | React, PixiJS, Axios, TanStack Query, `app`, `features` |
+| `mocks` | MSW, `shared/contracts`, `shared/storage`, `shared/api` configuration, `game/config` (the rules version of the fixtures) | React, PixiJS, Axios, TanStack Query, `app`, `features` |
 | `app`, `features` | Any module above | — |
 
 `.oxlintrc.json` enforces the table with `no-restricted-imports` overrides, so `npm run lint` fails when an import crosses a boundary. `src/testing` (the end-to-end bridge) is only loaded by the e2e build.
