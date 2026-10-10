@@ -1,11 +1,27 @@
 import type { ArenaDefinition } from './ArenaDefinition.ts'
+import { deepFreeze } from './deepFreeze.ts'
 
-export const defaultArena: ArenaDefinition = {
+// Islands are multiples of the 64-unit tile of the art, so the tile sheet can
+// draw them without scaling.
+export const defaultArena: ArenaDefinition = deepFreeze({
   width: 1280,
   height: 720,
   islands: [
-    { x: 300, y: 150, width: 170, height: 120 },
-    { x: 820, y: 430, width: 210, height: 140 },
-    { x: 560, y: 540, width: 120, height: 90 },
+    { x: 192, y: 128, width: 192, height: 128 },
+    { x: 896, y: 128, width: 192, height: 128 },
+    { x: 544, y: 288, width: 192, height: 128 },
+    { x: 192, y: 480, width: 192, height: 128 },
+    { x: 896, y: 480, width: 192, height: 128 },
   ],
-}
+  playerStart: { x: 320, y: 368, angle: 0 },
+  safeSpawnPoints: [
+    { x: 1216, y: 64 },
+    { x: 1216, y: 360 },
+    { x: 1216, y: 656 },
+    { x: 800, y: 360 },
+    { x: 640, y: 64 },
+    { x: 640, y: 656 },
+    { x: 64, y: 64 },
+    { x: 64, y: 656 },
+  ],
+})

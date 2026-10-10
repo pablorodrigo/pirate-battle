@@ -1,0 +1,10 @@
+/** Freezes an object graph so a configuration snapshot cannot change mid-match. */
+export function deepFreeze<T>(value: T): T {
+  if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) {
+    Object.freeze(value)
+    for (const child of Object.values(value)) {
+      deepFreeze(child)
+    }
+  }
+  return value
+}

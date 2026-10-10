@@ -99,7 +99,7 @@ export class PixiRenderer {
 
     this.terrain.addChild(water, ...islandShapes)
     this.ship.poly([28, 0, -18, -16, -10, 0, -18, 16]).fill(COLORS.ship)
-    this.ship.position.set(width / 2, height / 2)
+    this.ship.position.set(this.arena.playerStart.x, this.arena.playerStart.y)
   }
 
   /** Scales the logical arena uniformly and centers it inside the host. */
