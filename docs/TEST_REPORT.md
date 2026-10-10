@@ -1,6 +1,6 @@
 # Test report
 
-Last full run: October 10, 2026, on commit `0efafdc`.
+Last full run: October 10, 2026, on commit `ac2d718`.
 
 ## Summary
 
@@ -8,9 +8,9 @@ Last full run: October 10, 2026, on commit `0efafdc`.
 | --- | --- | --- | --- |
 | Type checking | `npm run typecheck` | Passed | Passed |
 | Lint | `npm run lint` | Passed, no warnings | Passed, no warnings |
-| Unit tests | `npm run test:unit` | 99 passed in 20 files | 99 passed in 20 files |
+| Unit tests | `npm run test:unit` | 113 passed in 21 files | 113 passed in 21 files |
 | Production build | `npm run build` | Passed | Passed |
-| End-to-end and visual tests | `npm run test:e2e` | 163 passed, 20 skipped, in 4.2 min | 163 passed, 20 skipped, in 9.7 min |
+| End-to-end and visual tests | `npm run test:e2e` | 171 passed, 20 skipped, in 5.0 min | 171 passed, 20 skipped, in 7.0 min |
 
 Twenty tests are skipped on purpose in every run. They are the ten touch tests (three touch-control tests and seven touch-layout tests) in the two projects without a touch screen, `desktop-chromium` and `dev-strict-mode`. `mobile-chromium` runs them.
 
@@ -37,9 +37,9 @@ The Linux run uses the image, architecture and commands of the CI workflow (`.gi
 
 | Project | Target | Tests |
 | --- | --- | ---: |
-| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 62 (59 end-to-end, 3 visual) |
-| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 62 (59 end-to-end, 3 visual) |
-| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 59 (end-to-end only) |
+| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 65 (61 end-to-end, 4 visual) |
+| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 65 (61 end-to-end, 4 visual) |
+| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 61 (end-to-end only) |
 
 Every test starts from a fresh browser context. Matches use fixed seeds and, where timing matters, a manual clock that advances whole simulation steps; tests act through real key presses or, on touch, held fingers sent through the Chrome DevTools Protocol, and check the effects. Any console error or uncaught exception fails a test unless that test expects it.
 
@@ -49,7 +49,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | --- | --- | --- |
 | 1 | Options: navigation, validation and persistence | `options.spec.ts` |
 | 2 | Asset loading, failures and retry | `assets.spec.ts` |
-| 3 | Match start, movement, rotation, arena bounds and island collisions | `movement.spec.ts`, `smoke.spec.ts` |
+| 3 | Match start, movement, rotation, arena bounds and island collisions, on the classic map and on a drawn one | `movement.spec.ts`, `map.spec.ts`, `smoke.spec.ts` |
 | 4 | Front and side cannons, damage, cooldowns and score without duplicates | `combat.spec.ts` |
 | 5 | Chaser and Shooter behavior and the spawn interval | `combat.spec.ts` |
 | 6 | Ending by time and by death, the simulation stopping and a clean restart | `match-flow.spec.ts` |
@@ -59,7 +59,8 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | 10 | Ranking and Match History: queries, pages, loading, empty and error states, each in both tabs | `leaderboards.spec.ts`, `network-scenarios.spec.ts` |
 | 11 | Registering a match, both tabs updating, and recovering a pending registration after a reload | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | 12 | Resending after a timeout without duplicates; late responses never replacing newer data | `registration.spec.ts`, `network-scenarios.spec.ts` |
-| — | Visual regression of the menu, the arena in a stable state and the result screen | `visual/screens.spec.ts` |
+| — | Visual regression of the menu, the arena in a stable state on the classic map and on a drawn map, and the result screen | `visual/screens.spec.ts` |
+| — | Drawn maps: the page plays the very map the generator draws for a seed, and a seed always brings its map back | `map.spec.ts` |
 | — | Sound effects: the setting, and files that load only once a match starts and only while sound is on | `audio.spec.ts`, `options.spec.ts` |
 | — | Touch layout in both orientations, nothing over the arena; no text selection or page zoom | `touch-layout.spec.ts`, `touch.spec.ts`, `smoke.spec.ts` |
 | — | How to play explains the controls of the device in use; the menu title is centred | `smoke.spec.ts`, `visual/screens.spec.ts` |
@@ -68,7 +69,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 
 | Area | Files | Tests |
 | --- | --- | ---: |
-| Simulation: geometry, random numbers, session, movement, combat, enemies, spawns and navigation | `src/game/core/**` | 48 |
+| Simulation: geometry, random numbers, session, movement, combat, enemies, spawns, navigation, and map generation with every rule of a layout over 300 seeds | `src/game/core/**` | 62 |
 | Configuration and arena layout | `src/game/config/**` | 9 |
 | Fixed-step loop and input merging | `src/game/runtime/**`, `src/game/input/**` | 8 |
 | Match sounds: which sound each event and change of the match plays | `src/game/audio/**` | 8 |
@@ -80,6 +81,8 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 
 | Found by | Symptom | Cause | Fix |
 | --- | --- | --- | --- |
+| Measuring the map generator over 1,000 seeds | 87% of the sand islands sat against a border, leaving the middle of the arena empty. | Open water a whole channel away from every border is the hardest place to fit an island, so the random positions that fitted were mostly at the borders. | `1974926`: each map draws one or two coasts on purpose and places every other island only in open water. |
+| Reviewing screenshots of drawn maps | A thin light line ran along the inner edge of coasts on the bottom and right borders. | The baked scenery textures repeated past their edges, so filtering blended each texture's far border, opaque sand on a coast, into its near edge. | `1974926`: only the water texture repeats; the others clamp at their edges. |
 | The Linux run in the CI image | `registration.spec.ts` › "keeps a pending registration through a reload…" on `mobile-chromium`: Match History stayed empty. | The trace showed `POST /api/matches` answered with 404 by the static server. A scheduled retry of the old page fired while the test navigated away, after MSW had stopped serving that page at `beforeunload`, and the 404 marked the match as rejected. | `30c1417`: the registration coordinator sends nothing more once the page starts unloading. Unit tests reproduce the race deterministically. |
 | Profiling | Memory held after leaving a match | PixiJS's batch pool kept the baked terrain canvases; a closure kept the first game screen. See [PROFILING.md](PROFILING.md). | `b37b207`, `a8deeaa` |
 | A manual test of the published build on an iPhone | In landscape the arena filled about a third of the screen. In portrait it was squeezed to a sliver once the match resumed. Dragging a finger selected text. | A HUD row and two wide control columns took the space, portrait had no layout of its own, and only the controls disabled selection. | `7c93ab9`, `7acd130`, `389de04`; `touch-layout.spec.ts` now checks seven phone screens. |

@@ -16,10 +16,16 @@
     "count": 5,
     "playSeconds": 30,
     "spawnIntervalSeconds": 2.5,
-    "seed": 2026
+    "seed": 2026,
+    "map": [
+      "sand",
+      "sand",
+      "sand",
+      "sand"
+    ]
   },
   "growthFromCycle1ToLast": {
-    "jsHeapUsedMb": 0.66,
+    "jsHeapUsedMb": 0.71,
     "domNodes": 0,
     "jsEventListeners": 0,
     "liveCanvases": 0,
@@ -28,38 +34,63 @@
   "largestHeapGrowthFromCycle1ToLast": [
     {
       "name": "(code)",
-      "objects": 3023,
-      "kilobytes": 592.9
+      "objects": 3189,
+      "kilobytes": 623.7
     },
     {
       "name": "system / WeakArrayList",
-      "objects": 18,
-      "kilobytes": 27
+      "objects": 28,
+      "kilobytes": 28.6
     },
     {
       "name": "(string)",
-      "objects": 75,
-      "kilobytes": 17.2
-    },
-    {
-      "name": "system / ExternalStringData",
-      "objects": 2,
-      "kilobytes": 3.8
-    },
-    {
-      "name": "blink::NetworkResourcesData::ResourceData",
-      "objects": 9,
-      "kilobytes": 2.5
+      "objects": 25,
+      "kilobytes": 17.3
     },
     {
       "name": "blink::ComputedStyleBase::StyleSurroundData",
-      "objects": 6,
-      "kilobytes": 1.8
+      "objects": 14,
+      "kilobytes": 4.3
+    },
+    {
+      "name": "system / ExternalStringData",
+      "objects": 3,
+      "kilobytes": 3.8
+    },
+    {
+      "name": "blink::ImageResource",
+      "objects": 1,
+      "kilobytes": 2.9
+    },
+    {
+      "name": "blink::HashTrieNode<blink::CSSVariableData>",
+      "objects": 11,
+      "kilobytes": 2.9
+    },
+    {
+      "name": "blink::NetworkResourcesData::ResourceData",
+      "objects": 10,
+      "kilobytes": 2.8
+    },
+    {
+      "name": "blink::StyleFetchedImage",
+      "objects": 14,
+      "kilobytes": 2.3
+    },
+    {
+      "name": "blink::CSSUrlData",
+      "objects": 28,
+      "kilobytes": 2
     },
     {
       "name": "LargestContentfulPaint",
-      "objects": 12,
-      "kilobytes": 1.6
+      "objects": 13,
+      "kilobytes": 1.7
+    },
+    {
+      "name": "MessagePort",
+      "objects": 10,
+      "kilobytes": 1.5
     },
     {
       "name": "blink::XHRReplayData",
@@ -67,47 +98,22 @@
       "kilobytes": 1.4
     },
     {
-      "name": "DOMRectReadOnly",
-      "objects": 24,
-      "kilobytes": 1.3
-    },
-    {
-      "name": "MessagePort",
-      "objects": 9,
+      "name": "blink::ComputedStyleBase::StyleBackgroundData",
+      "objects": 14,
       "kilobytes": 1.3
     },
     {
       "name": "InteractionContentfulPaint",
-      "objects": 12,
-      "kilobytes": 1.2
-    },
-    {
-      "name": "LayoutShift",
-      "objects": 8,
-      "kilobytes": 1.2
-    },
-    {
-      "name": "PerformanceResourceTiming",
-      "objects": 9,
-      "kilobytes": 1.2
-    },
-    {
-      "name": "Je",
-      "objects": 15,
-      "kilobytes": 1.1
-    },
-    {
-      "name": "blink::StyleFetchedImage",
-      "objects": 6,
-      "kilobytes": 1
+      "objects": 13,
+      "kilobytes": 1.3
     }
   ],
   "snapshots": [
     {
       "label": "Main menu, before any match",
-      "jsHeapUsedMb": 5.05,
+      "jsHeapUsedMb": 5.03,
       "domNodes": 291,
-      "jsEventListeners": 177,
+      "jsEventListeners": 178,
       "documents": 1,
       "canvasesInDocument": 0,
       "liveCanvases": [],
@@ -115,13 +121,12 @@
     },
     {
       "label": "Main menu, after cycle 1",
-      "jsHeapUsedMb": 7.41,
-      "domNodes": 303,
-      "jsEventListeners": 177,
+      "jsHeapUsedMb": 7.44,
+      "domNodes": 302,
+      "jsEventListeners": 178,
       "documents": 1,
       "canvasesInDocument": 0,
       "liveCanvases": [
-        "0x0",
         "0x0",
         "0x0",
         "0x0",
@@ -135,13 +140,12 @@
     },
     {
       "label": "Main menu, after cycle 2",
-      "jsHeapUsedMb": 7.6,
-      "domNodes": 303,
-      "jsEventListeners": 177,
+      "jsHeapUsedMb": 7.67,
+      "domNodes": 302,
+      "jsEventListeners": 178,
       "documents": 1,
       "canvasesInDocument": 0,
       "liveCanvases": [
-        "0x0",
         "0x0",
         "0x0",
         "0x0",
@@ -155,13 +159,12 @@
     },
     {
       "label": "Main menu, after cycle 3",
-      "jsHeapUsedMb": 7.76,
-      "domNodes": 303,
-      "jsEventListeners": 177,
+      "jsHeapUsedMb": 7.81,
+      "domNodes": 302,
+      "jsEventListeners": 178,
       "documents": 1,
       "canvasesInDocument": 0,
       "liveCanvases": [
-        "0x0",
         "0x0",
         "0x0",
         "0x0",
@@ -175,13 +178,12 @@
     },
     {
       "label": "Main menu, after cycle 4",
-      "jsHeapUsedMb": 7.95,
-      "domNodes": 303,
-      "jsEventListeners": 177,
+      "jsHeapUsedMb": 8.03,
+      "domNodes": 302,
+      "jsEventListeners": 178,
       "documents": 1,
       "canvasesInDocument": 0,
       "liveCanvases": [
-        "0x0",
         "0x0",
         "0x0",
         "0x0",
@@ -195,13 +197,12 @@
     },
     {
       "label": "Main menu, after cycle 5",
-      "jsHeapUsedMb": 8.07,
-      "domNodes": 303,
-      "jsEventListeners": 177,
+      "jsHeapUsedMb": 8.15,
+      "domNodes": 302,
+      "jsEventListeners": 178,
       "documents": 1,
       "canvasesInDocument": 0,
       "liveCanvases": [
-        "0x0",
         "0x0",
         "0x0",
         "0x0",
@@ -217,31 +218,31 @@
   "cycles": [
     {
       "cycle": 1,
-      "jsHeapUsedMbWhilePlaying": 10.53,
+      "jsHeapUsedMbWhilePlaying": 10.94,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 2,
-      "jsHeapUsedMbWhilePlaying": 10.57,
+      "jsHeapUsedMbWhilePlaying": 9.64,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 3,
-      "jsHeapUsedMbWhilePlaying": 9.85,
+      "jsHeapUsedMbWhilePlaying": 10.91,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 4,
-      "jsHeapUsedMbWhilePlaying": 10.4,
+      "jsHeapUsedMbWhilePlaying": 10.16,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     },
     {
       "cycle": 5,
-      "jsHeapUsedMbWhilePlaying": 11.07,
+      "jsHeapUsedMbWhilePlaying": 10.77,
       "canvasesWhilePlaying": 1,
       "leftFrom": "pause menu"
     }
