@@ -1,39 +1,45 @@
 .menu {
-  display: grid;
-  justify-items: center;
-  align-content: start;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  align-content: flex-start;
   gap: 1.5rem;
-  min-height: 100%;
   padding: 1.5rem 1rem;
 }
 
-.header {
-  text-align: center;
+.mainPanel,
+.boardPanel {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  width: min(30rem, 100%);
+}
+
+.boardPanel {
+  width: min(38rem, 100%);
 }
 
 .title {
   margin: 0;
-  font-size: clamp(2rem, 6vw, 3.5rem);
-  letter-spacing: 0.04em;
+  line-height: 0;
+}
+
+.titleImage {
+  width: min(20rem, 100%);
+  height: auto;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
 }
 
 .captain {
-  margin: 0.25rem 0 0;
+  margin: 0;
   opacity: 0.85;
-}
-
-.columns {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: start;
-  gap: 2rem;
-}
-
-.column {
-  display: grid;
-  justify-items: center;
-  gap: 1.5rem;
 }
 
 .actions {
@@ -41,9 +47,4 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.75rem;
-}
-
-.primary {
-  min-width: 12rem;
-  font-size: 1.25rem;
 }

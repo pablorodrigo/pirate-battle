@@ -1,4 +1,5 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react'
+import buttonStyles from '../../shared/ui/Button.module.css'
 import { HistoryPanel } from './HistoryPanel.tsx'
 import styles from './Leaderboards.module.css'
 import { RankingPanel } from './RankingPanel.tsx'
@@ -58,7 +59,7 @@ export function LeaderboardTabs() {
             aria-selected={selected === tab.id}
             aria-controls={panelId(tab.id)}
             tabIndex={selected === tab.id ? 0 : -1}
-            className={styles.tab}
+            className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.small} ${styles.tab}`}
             onClick={() => setSelected(tab.id)}
             onKeyDown={handleKeyDown}
           >

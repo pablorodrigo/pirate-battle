@@ -1,10 +1,15 @@
 .screen {
   display: grid;
-  place-content: center;
-  gap: 1.5rem;
-  min-height: 100%;
+  place-items: center;
   padding: 1rem;
   text-align: center;
+}
+
+.panel {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  width: min(30rem, 100%);
 }
 
 .title {

@@ -1,4 +1,5 @@
 import { toApiFailure } from '../../shared/api/apiErrors.ts'
+import { Button } from '../../shared/ui/Button.tsx'
 import styles from './Leaderboards.module.css'
 
 type ListStatusProps = {
@@ -26,9 +27,9 @@ export function ListStatus({ noun, isPending, isFetching, hasData, error, onRetr
           {hasData ? `Showing saved ${noun}; it could not be refreshed.` : `The ${noun} could not be loaded.`}{' '}
           {toApiFailure(error).message}
         </p>
-        <button type="button" onClick={onRetry} disabled={isFetching}>
+        <Button variant="secondary" size="small" onClick={onRetry} disabled={isFetching}>
           Try again
-        </button>
+        </Button>
       </div>
     )
   }

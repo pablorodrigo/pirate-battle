@@ -1,3 +1,4 @@
+import { Button } from '../../shared/ui/Button.tsx'
 import styles from './Leaderboards.module.css'
 
 type PaginationProps = {
@@ -14,15 +15,20 @@ export function Pagination({ label, page, totalPages, disabled, onChange }: Pagi
   }
   return (
     <nav className={styles.pagination} aria-label={`${label} pages`}>
-      <button type="button" onClick={() => onChange(page - 1)} disabled={disabled || page <= 1}>
+      <Button variant="secondary" size="small" onClick={() => onChange(page - 1)} disabled={disabled || page <= 1}>
         Previous
-      </button>
+      </Button>
       <span aria-live="polite">
         Page {page} of {totalPages}
       </span>
-      <button type="button" onClick={() => onChange(page + 1)} disabled={disabled || page >= totalPages}>
+      <Button
+        variant="secondary"
+        size="small"
+        onClick={() => onChange(page + 1)}
+        disabled={disabled || page >= totalPages}
+      >
         Next
-      </button>
+      </Button>
     </nav>
   )
 }

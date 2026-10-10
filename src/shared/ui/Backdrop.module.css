@@ -1,0 +1,8 @@
+/* Menu screens sit over the dimmed scene art of the asset pack. */
+.backdrop {
+  min-height: 100%;
+  background:
+    linear-gradient(rgb(11 42 60 / 0.55), rgb(11 42 60 / 0.8)),
+    var(--ui-scene-background) center / cover no-repeat,
+    var(--color-sea-deep);
+}

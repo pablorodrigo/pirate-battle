@@ -7,12 +7,14 @@ import { createQueryClient } from './app/queryClient.ts'
 import { matchJournal } from './features/registration/matchJournal.ts'
 import { RegistrationCoordinator } from './features/registration/RegistrationCoordinator.ts'
 import { RegistrationProvider } from './features/registration/RegistrationProvider.tsx'
+import { installUiSkin } from './shared/ui/uiSkin.ts'
 import './shared/styles/global.css'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
   throw new Error('Missing #root element in index.html')
 }
+installUiSkin()
 
 // Only the e2e build defines this flag, so the public bundle drops the bridge.
 if (import.meta.env.VITE_ENABLE_TEST_BRIDGE === 'true') {

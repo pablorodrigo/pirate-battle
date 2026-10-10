@@ -51,6 +51,6 @@
 }
 
 .icon {
-  width: 72%;
-  height: 72%;
+  width: var(--ui-round-icon-size);
+  height: var(--ui-round-icon-size);
 }

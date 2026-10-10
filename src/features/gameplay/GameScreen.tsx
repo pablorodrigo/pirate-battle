@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { MatchSettings } from '../../game/config/matchSettings.ts'
 import type { MatchResult } from '../../game/core/GameSession.ts'
 import type { HudSnapshot } from '../../game/runtime/GameRuntime.ts'
+import { Button } from '../../shared/ui/Button.tsx'
 import styles from './GameScreen.module.css'
 import { Hud } from './Hud.tsx'
 import { PauseDialog } from './PauseDialog.tsx'
@@ -58,12 +59,10 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
             <div className={styles.overlay} role="alert">
               <p>The game assets could not be loaded. Check your connection and try again.</p>
               <div className={styles.actions}>
-                <button type="button" onClick={retry}>
-                  Retry
-                </button>
-                <button type="button" onClick={onExit}>
+                <Button onClick={retry}>Retry</Button>
+                <Button variant="secondary" onClick={onExit}>
                   Main Menu
-                </button>
+                </Button>
               </div>
             </div>
           )}

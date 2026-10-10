@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { PauseReason } from '../../game/core/GameSession.ts'
+import { Button } from '../../shared/ui/Button.tsx'
+import panelStyles from '../../shared/ui/Panel.module.css'
 import styles from './PauseDialog.module.css'
 
 type PauseDialogProps = {
@@ -36,7 +38,7 @@ export function PauseDialog({ reason, onResume, onExit }: PauseDialogProps) {
   return (
     <dialog
       ref={dialogRef}
-      className={styles.dialog}
+      className={`${panelStyles.panel} ${styles.dialog}`}
       aria-labelledby="pause-title"
       aria-describedby="pause-reason"
       onCancel={(event) => {
@@ -51,12 +53,10 @@ export function PauseDialog({ reason, onResume, onExit }: PauseDialogProps) {
       <p id="pause-reason">{REASON_TEXT[reason ?? 'manual']}</p>
       <div className={styles.actions}>
         {/* showModal() focuses the first button, so Resume gets focus. */}
-        <button type="button" onClick={onResume}>
-          Resume
-        </button>
-        <button type="button" onClick={onExit}>
+        <Button onClick={onResume}>Resume</Button>
+        <Button variant="secondary" onClick={onExit}>
           Main Menu
-        </button>
+        </Button>
       </div>
     </dialog>
   )

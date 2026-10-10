@@ -3,6 +3,7 @@ import { useId, useSyncExternalStore } from 'react'
 import { mockServer } from '../../mocks/mockServer.ts'
 import { isNetworkScenario, NETWORK_SCENARIOS, type NetworkScenario } from '../../mocks/networkScenarios.ts'
 import { revisionGuard } from '../../shared/api/revisionGuard.ts'
+import { Button } from '../../shared/ui/Button.tsx'
 import { matchQueryKeys } from '../leaderboards/queries.ts'
 import { matchJournal } from '../registration/matchJournal.ts'
 import { useRegistration } from '../registration/registrationContext.ts'
@@ -71,9 +72,9 @@ export function NetworkScenariosPanel() {
         <p role="status" data-testid="pending-registrations">
           Pending registrations: {pending}
         </p>
-        <button type="button" onClick={() => void reset()}>
+        <Button variant="secondary" onClick={() => void reset()}>
           Reset demo data
-        </button>
+        </Button>
         <p className={styles.note}>
           Restores the sample captains and the Success scenario, and removes the matches and pending registrations
           of this browser.

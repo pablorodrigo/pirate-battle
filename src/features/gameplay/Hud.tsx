@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { HudSnapshot } from '../../game/runtime/GameRuntime.ts'
 import { formatClock } from './formatTime.ts'
 import styles from './Hud.module.css'
@@ -7,38 +8,68 @@ type HudProps = {
   onPause: () => void
 }
 
-/** Semantic match status: the canvas draws the same values for sighted players. */
+function healthColor(ratio: number): 'green' | 'amber' | 'red' {
+  return ratio > 2 / 3 ? 'green' : ratio > 1 / 3 ? 'amber' : 'red'
+}
+
+/**
+ * Semantic match status drawn with the HUD art: the term of each value is
+ * kept for assistive technology, while icons carry it visually.
+ */
 export function Hud({ hud, onPause }: HudProps) {
+  const health = hud?.health ?? 0
+  const maxHealth = hud?.maxHealth ?? 100
+  const ratio = maxHealth > 0 ? health / maxHealth : 0
+
   return (
     <header className={styles.hud}>
       <dl className={styles.stats}>
-        <div className={styles.stat}>
-          <dt>Score</dt>
-          <dd data-testid="hud-score">{hud?.score ?? 0}</dd>
-        </div>
-        <div className={styles.stat}>
-          <dt>Time</dt>
-          <dd data-testid="hud-time">{formatClock(hud?.remainingSeconds ?? 0)}</dd>
-        </div>
-        <div className={styles.stat}>
-          <dt>Health</dt>
-          <dd data-testid="hud-health">
+        <div className={styles.health}>
+          <dt className={styles.visuallyHidden}>Health</dt>
+          <dd data-testid="hud-health" className={styles.healthValue}>
             <meter
-              className={styles.meter}
+              className={styles.visuallyHidden}
               min={0}
-              max={hud?.maxHealth ?? 100}
-              low={(hud?.maxHealth ?? 100) / 3}
-              high={((hud?.maxHealth ?? 100) * 2) / 3}
-              optimum={hud?.maxHealth ?? 100}
-              value={hud?.health ?? 0}
+              max={maxHealth}
+              low={maxHealth / 3}
+              high={(maxHealth * 2) / 3}
+              optimum={maxHealth}
+              value={health}
               aria-label="Health"
             />
-            <span>{hud?.health ?? 0}</span>
+            <span className={styles.healthIcon} aria-hidden="true" />
+            <span
+              className={styles.healthBar}
+              data-color={healthColor(ratio)}
+              style={{ '--ratio': ratio } as CSSProperties}
+              aria-hidden="true"
+            >
+              <span className={styles.healthFill} />
+            </span>
+            <span className={styles.healthText}>
+              {health} / {maxHealth}
+            </span>
           </dd>
         </div>
+        <div className={styles.counter}>
+          <dt className={styles.visuallyHidden}>Score</dt>
+          <span className={styles.scoreIcon} aria-hidden="true" />
+          <dd data-testid="hud-score">{hud?.score ?? 0}</dd>
+        </div>
+        <div className={styles.counter}>
+          <dt className={styles.visuallyHidden}>Time</dt>
+          <span className={styles.timeIcon} aria-hidden="true" />
+          <dd data-testid="hud-time">{formatClock(hud?.remainingSeconds ?? 0)}</dd>
+        </div>
       </dl>
-      <button type="button" onClick={onPause} disabled={hud?.status !== 'running'}>
-        Pause
+      <button
+        type="button"
+        className={styles.pause}
+        onClick={onPause}
+        disabled={hud?.status !== 'running'}
+        aria-label="Pause"
+      >
+        <span className={styles.pauseIcon} aria-hidden="true" />
       </button>
     </header>
   )

@@ -1,5 +1,5 @@
 .panel {
-  width: min(36rem, calc(100vw - 2rem));
+  width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid rgb(244 239 225 / 0.35);
   border-radius: 0.5rem;

@@ -6,6 +6,9 @@ import {
   validateMatchSettings,
   type MatchSettingsErrors,
 } from '../../game/config/matchSettings.ts'
+import backdrop from '../../shared/ui/Backdrop.module.css'
+import { Button } from '../../shared/ui/Button.tsx'
+import { Panel } from '../../shared/ui/Panel.tsx'
 import styles from './OptionsScreen.module.css'
 import { saveSettings, useSettings } from './settingsStore.ts'
 
@@ -54,48 +57,50 @@ export function OptionsScreen({ onBack }: OptionsScreenProps) {
   }
 
   return (
-    <main className={styles.screen}>
-      <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
-        Options
-      </h1>
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <NumberField
-          id={ids.duration}
-          inputRef={durationRef}
-          label="Game session time"
-          unit="seconds"
-          hint={`Whole seconds from ${MATCH_DURATION_LIMITS.min} to ${MATCH_DURATION_LIMITS.max}.`}
-          value={duration}
-          limits={MATCH_DURATION_LIMITS}
-          error={errors.matchDurationSeconds}
-          onChange={setDuration}
-        />
-        <NumberField
-          id={ids.spawn}
-          inputRef={spawnRef}
-          label="Enemy spawn time"
-          unit="seconds"
-          hint={`From ${SPAWN_INTERVAL_LIMITS.min} to ${SPAWN_INTERVAL_LIMITS.max} seconds, in steps of ${SPAWN_INTERVAL_LIMITS.step}. Lower is harder.`}
-          value={spawnInterval}
-          limits={SPAWN_INTERVAL_LIMITS}
-          error={errors.spawnIntervalSeconds}
-          onChange={setSpawnInterval}
-        />
-        <p className={styles.status} role="status">
-          {saveStatus === 'saved' && 'Settings saved. They apply to your next match.'}
-          {saveStatus === 'unsaved' &&
-            'Settings apply to your next match, but this browser could not store them.'}
-        </p>
-        <div className={styles.actions}>
-          <button type="submit">Save</button>
-          <button type="button" onClick={restoreDefaults}>
-            Restore defaults
-          </button>
-          <button type="button" onClick={onBack}>
-            Main Menu
-          </button>
-        </div>
-      </form>
+    <main className={`${backdrop.backdrop} ${styles.screen}`}>
+      <Panel className={styles.panel}>
+        <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
+          Options
+        </h1>
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          <NumberField
+            id={ids.duration}
+            inputRef={durationRef}
+            label="Game session time"
+            unit="seconds"
+            hint={`Whole seconds from ${MATCH_DURATION_LIMITS.min} to ${MATCH_DURATION_LIMITS.max}.`}
+            value={duration}
+            limits={MATCH_DURATION_LIMITS}
+            error={errors.matchDurationSeconds}
+            onChange={setDuration}
+          />
+          <NumberField
+            id={ids.spawn}
+            inputRef={spawnRef}
+            label="Enemy spawn time"
+            unit="seconds"
+            hint={`From ${SPAWN_INTERVAL_LIMITS.min} to ${SPAWN_INTERVAL_LIMITS.max} seconds, in steps of ${SPAWN_INTERVAL_LIMITS.step}. Lower is harder.`}
+            value={spawnInterval}
+            limits={SPAWN_INTERVAL_LIMITS}
+            error={errors.spawnIntervalSeconds}
+            onChange={setSpawnInterval}
+          />
+          <p className={styles.status} role="status">
+            {saveStatus === 'saved' && 'Settings saved. They apply to your next match.'}
+            {saveStatus === 'unsaved' &&
+              'Settings apply to your next match, but this browser could not store them.'}
+          </p>
+          <div className={styles.actions}>
+            <Button type="submit">Save</Button>
+            <Button variant="secondary" onClick={restoreDefaults}>
+              Restore defaults
+            </Button>
+            <Button variant="secondary" onClick={onBack}>
+              Main Menu
+            </Button>
+          </div>
+        </form>
+      </Panel>
     </main>
   )
 }

@@ -1,0 +1,21 @@
+.panel {
+  position: relative;
+  isolation: isolate;
+  padding: var(--ui-panel-padding);
+  /* A little more room than the content area, so text never touches the frame. */
+  padding-inline: calc(var(--ui-panel-padding-inline) + 0.75rem);
+}
+
+/* The frame is a separate layer, so its slice widths and the content padding stay independent. */
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-style: solid;
+  border-width: var(--ui-panel-border);
+  border-image-source: var(--ui-panel);
+  border-image-slice: var(--ui-panel-slice);
+  border-image-width: var(--ui-panel-border);
+  border-image-repeat: stretch;
+}
