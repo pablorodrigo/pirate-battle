@@ -1,5 +1,5 @@
 import { Container, Graphics, Sprite, TilingSprite, type Texture } from 'pixi.js'
-import type { GameTextures, TilePlacement } from '../assets/gameTextures.ts'
+import { destroyBakedTexture, type GameTextures, type TilePlacement } from '../assets/gameTextures.ts'
 import type { ArenaDefinition } from '../config/ArenaDefinition.ts'
 import type { Rect } from '../core/math/geometry.ts'
 
@@ -63,7 +63,7 @@ export class Terrain {
   destroy(): void {
     this.root.destroy({ children: true, context: true })
     for (const texture of this.bakedTextures) {
-      texture.destroy(true)
+      destroyBakedTexture(texture)
     }
     this.bakedTextures.length = 0
   }

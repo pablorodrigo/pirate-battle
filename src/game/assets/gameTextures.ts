@@ -26,7 +26,8 @@ export type GameTextures = {
   /**
    * Draws tiles onto a new canvas texture at whole-unit positions. Static
    * scenery is baked this way so neighbouring atlas texels never bleed into
-   * seams when the scene is scaled. The caller owns and destroys the texture.
+   * seams when the scene is scaled. The caller owns the texture and releases
+   * it with `destroyBakedTexture`.
    */
   readonly bakeTiles: (width: number, height: number, placements: readonly TilePlacement[]) => Texture
 }
@@ -143,6 +144,20 @@ function bakeTiles(
   const source = new CanvasSource({ resource: canvas, resolution })
   source.addressMode = 'repeat'
   return new Texture({ source })
+}
+
+/**
+ * Destroys a texture made by `bakeTiles` and gives its canvas pixels back at
+ * once. PixiJS keeps the sources of its last draw batches in a global pool
+ * until it reuses the batches, which would hold the pixels after the match.
+ */
+export function destroyBakedTexture(texture: Texture): void {
+  const canvas: unknown = texture.source.resource
+  texture.destroy(true)
+  if (canvas instanceof HTMLCanvasElement) {
+    canvas.width = 0
+    canvas.height = 0
+  }
 }
 
 /** Frames are in logical units, so a 2× sheet keeps the same layout as the 1× one. */
