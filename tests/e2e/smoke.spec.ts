@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures.ts'
+import { expectGameReady } from '../support/match.ts'
 
 test('opens on the main menu', async ({ page }) => {
   await page.goto('/')
@@ -66,7 +67,7 @@ test('cancels page zoom gestures only while the game screen is up', async ({ pag
   expect(await pinchIsCancelled()).toBe(false)
 
   await page.getByRole('button', { name: 'Play' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
   await expect(page.getByRole('main')).toHaveCSS('touch-action', 'none')
   expect(await pinchIsCancelled()).toBe(true)
 
@@ -82,7 +83,7 @@ test('mounts one WebGL canvas per visit and removes it on exit', async ({ page }
   for (let visit = 1; visit <= 3; visit += 1) {
     await page.getByRole('button', { name: 'Play' }).click()
     const gameCanvas = page.getByTestId('game-canvas')
-    await expect(gameCanvas).toHaveAttribute('data-state', 'ready')
+    await expectGameReady(page)
     await expect(gameCanvas).toHaveAttribute('data-renderer', 'webgl')
     await expect(page.locator('canvas')).toHaveCount(1)
 

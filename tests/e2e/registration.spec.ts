@@ -1,5 +1,5 @@
 import { expect, test } from '../support/fixtures.ts'
-import { finishQuietMatch } from '../support/match.ts'
+import { expectGameReady, finishQuietMatch } from '../support/match.ts'
 
 const status = (page: import('@playwright/test').Page) => page.getByTestId('registration-status')
 
@@ -43,7 +43,7 @@ test('keeps a pending registration through a reload and sends it once the server
 
   // Another match can start while the registration is pending.
   await page.getByRole('button', { name: 'Play Again' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
   await page.getByRole('button', { name: 'Pause' }).click()
   await page.getByRole('dialog', { name: 'Paused' }).getByRole('button', { name: 'Main Menu' }).click()
 

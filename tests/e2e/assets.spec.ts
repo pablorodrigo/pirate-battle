@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures.ts'
+import { expectGameReady } from '../support/match.ts'
 
 test('shows loading progress before the match starts', async ({ page, context }) => {
   await context.route('**/tiles_sheet*.png', async (route) => {
@@ -10,7 +11,7 @@ test('shows loading progress before the match starts', async ({ page, context })
 
   await expect(page.getByRole('progressbar', { name: 'Loading the fleet…' })).toBeVisible()
   await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'loading')
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
   await expect(page.getByRole('progressbar')).toHaveCount(0)
 })
 
@@ -28,7 +29,7 @@ test('reports a failed asset, keeps combat stopped and recovers on retry', async
 
   await context.unroute('**/ships_miscellaneous_sheet*.png')
   await alert.getByRole('button', { name: 'Retry' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
   await expect(page.locator('canvas')).toHaveCount(1)
 })
 

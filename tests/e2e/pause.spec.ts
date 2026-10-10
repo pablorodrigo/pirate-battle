@@ -1,10 +1,11 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '../support/fixtures.ts'
+import { expectGameReady } from '../support/match.ts'
 
 async function startMatch(page: Page): Promise<void> {
   await page.goto('/')
   await page.getByRole('button', { name: 'Play' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
 }
 
 test('pauses from the keyboard, freezes the clock and resumes only on request', async ({ page }) => {

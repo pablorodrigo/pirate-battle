@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures.ts'
+import { expectGameReady } from '../support/match.ts'
 
 test('pages through the ranking of the current settings', async ({ page }) => {
   await page.goto('/?scenario=paginated')
@@ -44,7 +45,7 @@ test('reports a ranking failure without affecting the history or the game', asyn
   await expect(page.getByRole('tabpanel', { name: 'Match History' })).toContainText('no registered matches yet')
 
   await page.getByRole('button', { name: 'Play' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
 })
 
 test('moves between tabs with the arrow keys', async ({ page }) => {

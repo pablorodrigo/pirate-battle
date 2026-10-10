@@ -1,5 +1,5 @@
 import { expect, test } from '../support/fixtures.ts'
-import { advance, holdKey, matchState, startMatch, STEPS_PER_SECOND } from '../support/match.ts'
+import { advance, expectGameReady, holdKey, matchState, startMatch, STEPS_PER_SECOND } from '../support/match.ts'
 
 test('a held key does not act after resuming until it is pressed again', async ({ page }) => {
   await startMatch(page, { spawns: false, player: { x: 300, y: 368, angle: 0 } })
@@ -35,7 +35,7 @@ test('ends by timeout, shows the result and restarts cleanly', async ({ page }) 
   await expect(page.getByTestId('result-reason')).toHaveText('Time ran out')
 
   await page.getByRole('button', { name: 'Play Again' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
   const state = await matchState(page)
   expect(state).toMatchObject({ status: 'running', step: 0, score: 0, enemies: [], projectiles: [] })
   expect(state.player.health).toBe(100)

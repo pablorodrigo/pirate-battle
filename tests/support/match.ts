@@ -15,7 +15,19 @@ export async function startMatch(page: Page, scenario: MatchScenario = {}, url =
   }, resolved)
   await page.goto(url)
   await page.getByRole('button', { name: 'Play' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
+}
+
+/**
+ * Loading decodes the textures and starts WebGL, the step that varies most
+ * between machines and is slowest without a GPU, so it gets more time than an
+ * ordinary assertion.
+ */
+const GAME_LOAD_TIMEOUT = 30_000
+
+/** Waits until the match has loaded its assets and started. */
+export async function expectGameReady(page: Page): Promise<void> {
+  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready', { timeout: GAME_LOAD_TIMEOUT })
 }
 
 /** Plays a quiet match to the end of its default two minutes, landing on the result screen. */

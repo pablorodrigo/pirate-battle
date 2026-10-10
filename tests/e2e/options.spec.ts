@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures.ts'
+import { expectGameReady } from '../support/match.ts'
 
 test('validates, saves and restores the options after a reload', async ({ page }) => {
   await page.goto('/')
@@ -62,7 +63,7 @@ test('turns sound effects off in Options, back on while paused, and keeps the ch
 
   await page.reload()
   await page.getByRole('button', { name: 'Play' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
   await page.getByRole('button', { name: 'Pause' }).click()
   const pauseMenu = page.getByRole('dialog', { name: 'Paused' })
   const pauseSound = pauseMenu.getByRole('checkbox', { name: 'Sound effects' })

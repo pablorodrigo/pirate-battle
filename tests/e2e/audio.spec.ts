@@ -1,5 +1,6 @@
 import type { BrowserContext } from '@playwright/test'
 import { expect, test } from '../support/fixtures.ts'
+import { expectGameReady } from '../support/match.ts'
 
 /** Sound files the game downloads, from the page or through the mock API's service worker. */
 function soundRequests(context: BrowserContext): Set<string> {
@@ -21,7 +22,7 @@ test('loads the sound effects in the background once a match starts', async ({ p
   expect(files.size).toBe(0)
 
   await page.getByRole('button', { name: 'Play' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
   await expect.poll(() => files.size).toBe(21)
 })
 
@@ -32,7 +33,7 @@ test('downloads no sound while sound effects are off', async ({ page, context })
   })
   await page.goto('/')
   await page.getByRole('button', { name: 'Play' }).click()
-  await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+  await expectGameReady(page)
   // Absence can only be checked over time: long enough for every file to have been requested.
   await page.waitForTimeout(1500)
   expect(files.size).toBe(0)
