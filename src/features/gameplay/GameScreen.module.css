@@ -9,17 +9,36 @@
   touch-action: none;
 }
 
-.playfield {
-  display: flex;
-  flex: 1;
-  min-height: 0;
+/*
+ * Nothing ever covers the arena: on touch screens the HUD and the controls
+ * share the space the arena leaves. In landscape that space is beside it, so
+ * the HUD moves into the two side columns, above the controls, and the arena
+ * gets the full height. The HUD names its parts' grid areas (Hud.module.css).
+ */
+.screen[data-layout='landscape'] {
+  --control-size: 3rem;
+  --control-gap: 0.25rem;
+  --side-column: calc(2 * var(--control-size) + var(--control-gap));
+
+  display: grid;
+  grid-template-columns: var(--side-column) minmax(0, 1fr) var(--side-column);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'health   arena pause'
+    'health   arena counters'
+    '.        arena .'
+    'movement arena attacks';
+  gap: 0.25rem;
+  padding: max(env(safe-area-inset-top), 0.25rem) max(env(safe-area-inset-right), 0.25rem)
+    max(env(safe-area-inset-bottom), 0.25rem) max(env(safe-area-inset-left), 0.25rem);
 }
 
-/* Touch controls live beside the arena, never over it. */
-.controls {
-  display: flex;
-  align-items: flex-end;
-  padding: 0.5rem;
+.movement {
+  grid-area: movement;
+}
+
+.attacks {
+  grid-area: attacks;
 }
 
 .visuallyHidden {
@@ -33,6 +52,7 @@
 }
 
 .arena {
+  grid-area: arena;
   position: relative;
   flex: 1;
   min-width: 0;

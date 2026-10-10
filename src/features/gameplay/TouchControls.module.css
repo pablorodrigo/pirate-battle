@@ -1,19 +1,21 @@
+/* A compact triangle: the main action on top, centred over the two side
+   actions. The game screen sets the button size and gap. */
 .cluster {
   display: grid;
   grid-template-areas:
-    '. top .'
-    'left . right';
-  grid-template-columns: repeat(3, 3.25rem);
-  grid-template-rows: repeat(2, 3.25rem);
-  gap: 0.25rem;
+    'top top'
+    'left right';
+  grid-template-columns: repeat(2, var(--control-size));
+  grid-template-rows: repeat(2, var(--control-size));
+  gap: var(--control-gap);
 }
 
 .button {
   position: relative;
   display: grid;
   place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
+  width: var(--control-size);
+  height: var(--control-size);
   min-height: 44px;
   padding: 0;
   border: none;
@@ -23,6 +25,7 @@
 
 .button[data-area='top'] {
   grid-area: top;
+  justify-self: center;
 }
 
 .button[data-area='left'] {

@@ -7,7 +7,7 @@ import styles from './GameScreen.module.css'
 import { Hud } from './Hud.tsx'
 import { PauseDialog } from './PauseDialog.tsx'
 import { TouchControls } from './TouchControls.tsx'
-import { usePortraitTouch, useTouchDevice } from './useDeviceTraits.ts'
+import { type ScreenLayout, usePortraitTouch, useTouchDevice } from './useDeviceTraits.ts'
 import { useGameRuntime } from './useGameRuntime.ts'
 import { useMatchHud } from './useMatchHud.ts'
 import { useNoPageZoom } from './useNoPageZoom.ts'
@@ -25,6 +25,7 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
   const hud = useMatchHud(runtime)
   const touch = useTouchDevice()
   const portrait = usePortraitTouch()
+  const layout: ScreenLayout = touch ? 'landscape' : 'keyboard'
   useNoPageZoom()
 
   // Touch devices play in landscape: turning to portrait pauses without changing any rule.
@@ -35,46 +36,44 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
   }, [portrait, runtime])
 
   return (
-    <main className={styles.screen} data-touch={touch}>
+    <main className={styles.screen} data-layout={layout}>
       <h1 className={styles.visuallyHidden}>Battle</h1>
-      <Hud hud={hud} onPause={() => runtime?.pause('manual')} />
-      <div className={styles.playfield}>
-        {touch && (
-          <div className={styles.controls}>
-            <TouchControls input={runtime?.input ?? null} group="movement" />
+      <Hud hud={hud} layout={layout} onPause={() => runtime?.pause('manual')} />
+      {touch && (
+        <div className={styles.movement}>
+          <TouchControls input={runtime?.input ?? null} group="movement" />
+        </div>
+      )}
+      <div
+        className={styles.arena}
+        data-testid="game-canvas"
+        data-state={state.status}
+        data-renderer={state.status === 'ready' ? state.rendererName : undefined}
+      >
+        <div ref={hostRef} className={styles.host} role="img" aria-label="Battle arena" />
+        {state.status === 'loading' && (
+          <div className={styles.overlay}>
+            <p id="loading-label">Loading the fleet…</p>
+            <progress aria-labelledby="loading-label" max={100} value={Math.round(state.progress * 100)} />
           </div>
         )}
-        <div
-          className={styles.arena}
-          data-testid="game-canvas"
-          data-state={state.status}
-          data-renderer={state.status === 'ready' ? state.rendererName : undefined}
-        >
-          <div ref={hostRef} className={styles.host} role="img" aria-label="Battle arena" />
-          {state.status === 'loading' && (
-            <div className={styles.overlay}>
-              <p id="loading-label">Loading the fleet…</p>
-              <progress aria-labelledby="loading-label" max={100} value={Math.round(state.progress * 100)} />
+        {state.status === 'error' && (
+          <div className={styles.overlay} role="alert">
+            <p>The game assets could not be loaded. Check your connection and try again.</p>
+            <div className={styles.actions}>
+              <Button onClick={retry}>Retry</Button>
+              <Button variant="secondary" onClick={onExit}>
+                Main Menu
+              </Button>
             </div>
-          )}
-          {state.status === 'error' && (
-            <div className={styles.overlay} role="alert">
-              <p>The game assets could not be loaded. Check your connection and try again.</p>
-              <div className={styles.actions}>
-                <Button onClick={retry}>Retry</Button>
-                <Button variant="secondary" onClick={onExit}>
-                  Main Menu
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-        {touch && (
-          <div className={styles.controls}>
-            <TouchControls input={runtime?.input ?? null} group="attacks" />
           </div>
         )}
       </div>
+      {touch && (
+        <div className={styles.attacks}>
+          <TouchControls input={runtime?.input ?? null} group="attacks" />
+        </div>
+      )}
       <p className={styles.visuallyHidden} role="status">
         {announcementFor(hud)}
       </p>

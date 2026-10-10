@@ -2,9 +2,11 @@ import type { CSSProperties } from 'react'
 import type { HudSnapshot } from '../../game/runtime/GameRuntime.ts'
 import { formatClock } from './formatTime.ts'
 import styles from './Hud.module.css'
+import type { ScreenLayout } from './useDeviceTraits.ts'
 
 type HudProps = {
   hud: HudSnapshot | null
+  layout: ScreenLayout
   onPause: () => void
 }
 
@@ -14,16 +16,18 @@ function healthColor(ratio: number): 'green' | 'amber' | 'red' {
 
 /**
  * Semantic match status drawn with the HUD art: the term of each value is
- * kept for assistive technology, while icons carry it visually.
+ * kept for assistive technology, while icons carry it visually. Its three
+ * parts (health, counters, pause) sit in one row, or, in the landscape touch
+ * layout, in the game screen's side columns.
  */
-export function Hud({ hud, onPause }: HudProps) {
+export function Hud({ hud, layout, onPause }: HudProps) {
   const health = hud?.health ?? 0
   const maxHealth = hud?.maxHealth ?? 100
   const ratio = maxHealth > 0 ? health / maxHealth : 0
 
   return (
-    <header className={styles.hud}>
-      <dl className={styles.stats}>
+    <header className={styles.hud} data-layout={layout}>
+      <dl className={styles.healthPanel}>
         <div className={styles.health}>
           <dt className={styles.visuallyHidden}>Health</dt>
           <dd data-testid="hud-health" className={styles.healthValue}>
@@ -51,6 +55,8 @@ export function Hud({ hud, onPause }: HudProps) {
             </span>
           </dd>
         </div>
+      </dl>
+      <dl className={styles.counters}>
         <div className={styles.counter}>
           <dt className={styles.visuallyHidden}>Score</dt>
           <span className={styles.scoreIcon} aria-hidden="true" />

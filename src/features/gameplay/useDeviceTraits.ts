@@ -14,6 +14,13 @@ function mediaQueryStore(query: string) {
 const touch = mediaQueryStore('(pointer: coarse)')
 const portraitTouch = mediaQueryStore('(pointer: coarse) and (orientation: portrait)')
 
+/**
+ * How the game screen arranges the HUD and the controls around the arena:
+ * keyboard players get the HUD above it; touch screens in landscape get the
+ * HUD and the on-screen controls in the columns beside it.
+ */
+export type ScreenLayout = 'keyboard' | 'landscape'
+
 /** Touch screens get on-screen controls. */
 export function useTouchDevice(): boolean {
   return useSyncExternalStore(touch.subscribe, touch.getSnapshot) || navigator.maxTouchPoints > 0
