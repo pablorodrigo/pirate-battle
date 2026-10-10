@@ -1,0 +1,40 @@
+.panel {
+  width: min(36rem, calc(100vw - 2rem));
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(244 239 225 / 0.35);
+  border-radius: 0.5rem;
+  text-align: left;
+}
+
+.panel summary {
+  min-height: 44px;
+  align-content: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.body {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.body p {
+  margin: 0;
+}
+
+.body select {
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: 2px solid currentColor;
+  border-radius: 0.5rem;
+  font: inherit;
+  color: inherit;
+  background: var(--color-sea-deep);
+}
+
+.note {
+  font-size: 0.875rem;
+  opacity: 0.85;
+}

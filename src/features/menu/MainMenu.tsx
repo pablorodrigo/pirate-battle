@@ -3,6 +3,9 @@ import { getPlayer } from '../player/playerIdentity.ts'
 import { ApiStatus } from './ApiStatus.tsx'
 import { ControlsGuide } from './ControlsGuide.tsx'
 import styles from './MainMenu.module.css'
+import { NetworkScenariosPanel } from './NetworkScenariosPanel.tsx'
+
+const MOCKS_ENABLED = import.meta.env.VITE_ENABLE_MOCKS !== 'false'
 
 type MainMenuProps = {
   onPlay: () => void
@@ -31,7 +34,10 @@ export function MainMenu({ onPlay, onOptions }: MainMenuProps) {
           <ControlsGuide />
           <ApiStatus />
         </div>
-        <LeaderboardTabs />
+        <div className={styles.column}>
+          <LeaderboardTabs />
+          {MOCKS_ENABLED && <NetworkScenariosPanel />}
+        </div>
       </div>
     </main>
   )
