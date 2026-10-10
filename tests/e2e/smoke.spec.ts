@@ -7,6 +7,33 @@ test('opens on the main menu', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Pirate Battle' })).toBeVisible()
 })
 
+test('centres the title in its panel', async ({ page }) => {
+  await page.goto('/')
+  const title = page.getByRole('img', { name: 'Pirate Battle' })
+  await expect(title).toHaveJSProperty('complete', true)
+  const panel = await page.locator('section', { has: title }).boundingBox()
+  const image = await title.boundingBox()
+  if (!panel || !image) {
+    throw new Error('The menu panel or its title is not on screen.')
+  }
+  expect(image.x + image.width / 2).toBeCloseTo(panel.x + panel.width / 2, 0)
+})
+
+test('explains the controls of the device in use', async ({ page, hasTouch }) => {
+  await page.goto('/')
+  const guide = page.getByRole('region', { name: 'How to play' })
+  await expect(guide.getByRole('term').first()).toHaveText('Sail forward')
+  if (hasTouch) {
+    // The on-screen buttons, as the match draws them; no keyboard keys.
+    await expect(guide.getByRole('img', { name: 'Arrow button, on the left' })).toBeVisible()
+    await expect(guide.getByRole('img', { name: 'Right broadside button, on the right' })).toBeVisible()
+    await expect(guide.locator('kbd')).toHaveCount(0)
+  } else {
+    await expect(guide.locator('kbd').first()).toHaveText('W')
+    await expect(guide.getByRole('img')).toHaveCount(0)
+  }
+})
+
 test('reaches the mock API through Axios and TanStack Query', async ({ page }) => {
   await page.goto('/')
 

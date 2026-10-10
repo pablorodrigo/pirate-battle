@@ -55,6 +55,8 @@ npx playwright install chromium
 
 Moving, turning and firing can be combined, with keys or with several fingers. Holding a fire control keeps firing as soon as each cannon's cooldown ends. Keys are only captured while a match is running.
 
+**How to play** in the main menu explains the controls of the device in use: the keys on a computer, or the on-screen buttons, drawn as in a match, on a touch screen.
+
 Sound effects are on by default. Options turns them off, and so does the switch in the pause menu, which applies at once.
 
 The match pauses on its own when the window loses focus or the tab is hidden. Resuming always needs an explicit action, and keys or fingers held through a pause must be pressed again.

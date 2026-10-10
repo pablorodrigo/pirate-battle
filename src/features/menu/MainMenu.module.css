@@ -20,13 +20,16 @@
   width: min(38rem, 100%);
 }
 
+/* The heading takes the image's displayed width, so centring it centres the art. */
 .title {
+  width: min(20rem, 100%);
   margin: 0;
   line-height: 0;
 }
 
 .titleImage {
-  width: min(20rem, 100%);
+  display: block;
+  width: 100%;
   height: auto;
 }
 

@@ -23,8 +23,8 @@ const portrait = mediaQueryStore('(orientation: portrait)')
  */
 export type ScreenLayout = 'keyboard' | 'landscape' | 'portrait'
 
-/** Touch screens get on-screen controls. */
-function useTouchDevice(): boolean {
+/** Touch screens get on-screen controls, and the menu explains those instead of keys. */
+export function useTouchDevice(): boolean {
   return useSyncExternalStore(touch.subscribe, touch.getSnapshot) || navigator.maxTouchPoints > 0
 }
 

@@ -15,7 +15,16 @@ test.describe('screens', { tag: '@visual' }, () => {
     await page.goto('/')
     await expect(page.getByRole('tabpanel', { name: 'Ranking' }).getByRole('table')).toBeVisible()
     await expect(page.getByRole('status').filter({ hasText: 'Mock API' })).toHaveText('Mock API: online')
-    await expect(page).toHaveScreenshot('main-menu.png', { fullPage: true })
+    // Chromium's full-page capture briefly drops touch emulation, which would re-render the
+    // controls guide for a keyboard. Growing the viewport to the page's height captures the
+    // whole menu as the device shows it.
+    const viewport = page.viewportSize()
+    const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight)
+    if (viewport && pageHeight > viewport.height) {
+      await page.setViewportSize({ width: viewport.width, height: pageHeight })
+    }
+    await expect(page.locator('[data-controls]')).toHaveAttribute('data-controls', test.info().project.use.hasTouch ? 'touch' : 'keyboard')
+    await expect(page).toHaveScreenshot('main-menu.png')
   })
 
   test('arena in a known state', async ({ page }) => {
