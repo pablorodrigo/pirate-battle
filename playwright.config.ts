@@ -1,7 +1,10 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PREVIEW_PORT = 4174
-const DEV_PORT = 5174
+// Ports of their own, away from Vite's defaults (5173 and 4173, counting up when
+// taken): local runs reuse a server already on these ports, so a developer's own
+// `npm run dev`, which has no test bridge, must never be found there.
+const PREVIEW_PORT = 4180
+const DEV_PORT = 5180
 const isCI = Boolean(process.env.CI)
 
 export default defineConfig({
