@@ -1,8 +1,9 @@
-import { Application, Container, Graphics, type Ticker } from 'pixi.js'
+import { Application, Container, Graphics, GraphicsContext, type Ticker } from 'pixi.js'
 import type { ArenaDefinition } from '../config/ArenaDefinition.ts'
-import type { Ship } from '../core/entities.ts'
+import type { Faction, Projectile, Ship } from '../core/entities.ts'
 import type { GameEvent } from '../core/events.ts'
 import type { World } from '../core/World.ts'
+import { EffectLayer } from './EffectLayer.ts'
 import { ShipView } from './ShipView.ts'
 
 const MAX_RESOLUTION = 2
@@ -12,7 +13,13 @@ const COLORS = {
   water: 0x1f6f99,
   sand: 0xe8d29b,
   shore: 0xc9a65f,
+  outline: 0x0b2a3c,
 } as const
+
+const PROJECTILE_COLORS: Readonly<Record<Faction, number>> = {
+  player: 0xfdf6e3,
+  enemy: 0xff5a4e,
+}
 
 type RendererState = 'idle' | 'running' | 'destroyed'
 
@@ -29,21 +36,34 @@ export class PixiRenderer {
   private readonly scene = new Container()
   private readonly terrain = new Container()
   private readonly shipLayer = new Container()
+  private readonly projectileLayer = new Container()
+  private readonly effects = new EffectLayer()
   private readonly shipViews = new Map<number, ShipView>()
+  private readonly projectileViews = new Map<number, Graphics>()
+  private readonly projectileShapes: Readonly<Record<Faction, GraphicsContext>>
   private readonly seenIds = new Set<number>()
   private resizeObserver: ResizeObserver | null = null
   private state: RendererState = 'idle'
 
   constructor(arena: ArenaDefinition) {
     this.arena = arena
+    this.projectileShapes = {
+      player: projectileShape(PROJECTILE_COLORS.player),
+      enemy: projectileShape(PROJECTILE_COLORS.enemy),
+    }
     // Attached up front so that destroying the application releases every
     // display object, even when it is destroyed before init() completes.
-    this.scene.addChild(this.terrain, this.shipLayer)
+    this.scene.addChild(this.terrain, this.shipLayer, this.projectileLayer, this.effects.root)
     this.app.stage.addChild(this.scene)
   }
 
   get rendererName(): string {
     return this.app.renderer.name
+  }
+
+  /** Display objects currently alive, for leak checks in tests and profiling. */
+  get viewCount(): number {
+    return this.shipViews.size + this.projectileViews.size + this.effects.count
   }
 
   async mount(host: HTMLElement): Promise<void> {
@@ -60,7 +80,7 @@ export class PixiRenderer {
     })
 
     if (this.state === 'destroyed') {
-      this.releaseApplication()
+      this.release()
       return
     }
 
@@ -84,11 +104,20 @@ export class PixiRenderer {
     }
   }
 
-  render(world: World, alpha: number, _events: readonly GameEvent[]): void {
+  render(world: World, alpha: number, events: readonly GameEvent[]): void {
+    // Simulation time, in steps: effects use it so they freeze during pauses.
+    const now = world.step + alpha
+    for (const event of events) {
+      this.effects.handle(event, now)
+      if (event.type === 'shipDamaged') {
+        this.shipViews.get(event.shipId)?.flash(now)
+      }
+    }
+
     this.seenIds.clear()
-    this.syncShip(world.player, alpha)
+    this.syncShip(world.player, alpha, now)
     for (const enemy of world.enemies) {
-      this.syncShip(enemy, alpha)
+      this.syncShip(enemy, alpha, now)
     }
     for (const [id, view] of this.shipViews) {
       if (!this.seenIds.has(id)) {
@@ -96,6 +125,19 @@ export class PixiRenderer {
         this.shipViews.delete(id)
       }
     }
+
+    this.seenIds.clear()
+    for (const projectile of world.projectiles) {
+      this.syncProjectile(projectile, alpha)
+    }
+    for (const [id, graphic] of this.projectileViews) {
+      if (!this.seenIds.has(id)) {
+        graphic.destroy()
+        this.projectileViews.delete(id)
+      }
+    }
+
+    this.effects.update(now)
   }
 
   destroy(): void {
@@ -106,11 +148,10 @@ export class PixiRenderer {
     }
     this.resizeObserver?.disconnect()
     this.resizeObserver = null
-    this.releaseApplication()
-    this.shipViews.clear()
+    this.release()
   }
 
-  private syncShip(ship: Ship, alpha: number): void {
+  private syncShip(ship: Ship, alpha: number, now: number): void {
     this.seenIds.add(ship.id)
     let view = this.shipViews.get(ship.id)
     if (!view) {
@@ -118,10 +159,40 @@ export class PixiRenderer {
       this.shipViews.set(ship.id, view)
       this.shipLayer.addChild(view.root)
     }
-    view.update(ship, alpha)
+    view.update(ship, alpha, now)
   }
 
-  private releaseApplication(): void {
+  private syncProjectile(projectile: Projectile, alpha: number): void {
+    this.seenIds.add(projectile.id)
+    let graphic = this.projectileViews.get(projectile.id)
+    if (!graphic) {
+      graphic = new Graphics(this.projectileShapes[projectile.faction])
+      this.projectileViews.set(projectile.id, graphic)
+      this.projectileLayer.addChild(graphic)
+    }
+    graphic.position.set(
+      projectile.previousX + (projectile.x - projectile.previousX) * alpha,
+      projectile.previousY + (projectile.y - projectile.previousY) * alpha,
+    )
+  }
+
+  /**
+   * Views go first, then the geometry they share, then the application. A
+   * Graphics built on a shared context leaves the context alone when it is
+   * destroyed without options, so each shared context is destroyed once.
+   */
+  private release(): void {
+    for (const view of this.shipViews.values()) {
+      view.destroy()
+    }
+    this.shipViews.clear()
+    for (const graphic of this.projectileViews.values()) {
+      graphic.destroy()
+    }
+    this.projectileViews.clear()
+    this.effects.destroy()
+    this.projectileShapes.player.destroy()
+    this.projectileShapes.enemy.destroy()
     // `context: true` is required: Graphics only free their own
     // GraphicsContext when destroyed without options.
     this.app.destroy({ removeView: true }, { children: true, context: true })
@@ -154,4 +225,8 @@ export class PixiRenderer {
       (height - this.arena.height * scale) / 2,
     )
   }
+}
+
+function projectileShape(color: number): GraphicsContext {
+  return new GraphicsContext().circle(0, 0, 4).fill(color).stroke({ width: 1.5, color: COLORS.outline })
 }

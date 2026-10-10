@@ -2,6 +2,7 @@ import type { ArenaDefinition } from '../config/ArenaDefinition.ts'
 import type { GameplayConfig } from '../config/GameplayConfig.ts'
 import type { EndReason, GameEvent } from './events.ts'
 import type { InputSnapshot } from './input.ts'
+import { firePlayerCannons, updateProjectiles } from './systems/combat.ts'
 import { keepOnOpenWater, moveShip } from './systems/movement.ts'
 import { World } from './World.ts'
 
@@ -89,12 +90,18 @@ export class GameSession {
     return this.world.events.splice(0)
   }
 
-  /** Advances the match by one fixed step. Does nothing unless it is running. */
+  /**
+   * Advances the match by one fixed step. Does nothing unless it is running.
+   *
+   * Order: intents, movement and collisions, projectiles already in flight,
+   * new shots, then time. A phase that destroys the player ends the match
+   * before any later phase runs.
+   */
   step(input: InputSnapshot): void {
     if (this.currentStatus.kind !== 'running') {
       return
     }
-    const { world } = this
+    const { world, config } = this
     world.savePreviousPoses()
 
     const player = world.player
@@ -104,11 +111,33 @@ export class GameSession {
     moveShip(player, this.stepSeconds)
     keepOnOpenWater(player, world.arena)
 
+    updateProjectiles(world)
+    if (this.endIfPlayerDestroyed()) {
+      return
+    }
+
+    // Nothing is fired at the closing instant of the match.
+    const isLastStep = world.step + 1 >= this.durationSteps
+    if (!isLastStep) {
+      firePlayerCannons(world, input, config)
+    }
+
     world.step += 1
     if (world.step >= this.durationSteps) {
       this.finish('timeout')
     }
     world.removeInactive()
+  }
+
+  /** The step that destroys the player still counts as played time. */
+  private endIfPlayerDestroyed(): boolean {
+    if (this.world.player.alive) {
+      return false
+    }
+    this.world.step += 1
+    this.finish('death')
+    this.world.removeInactive()
+    return true
   }
 
   private finish(reason: EndReason): void {
