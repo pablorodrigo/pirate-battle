@@ -3,6 +3,51 @@
   "plugins": ["react", "typescript", "oxc"],
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+    "react/exhaustive-deps": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error"
+  },
+  "overrides": [
+    {
+      "files": ["src/game/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["react", "react-dom", "react-dom/*", "axios", "msw", "msw/*", "@tanstack/*"],
+                "message": "The game layer must not depend on React or on the data layer."
+              },
+              {
+                "group": ["**/app/**", "**/features/**", "**/mocks/**", "**/shared/api/**"],
+                "message": "The game layer must not depend on application or data modules."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/game/core/**", "src/game/config/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["pixi.js", "pixi.js/*", "react", "react-dom", "react-dom/*", "axios", "msw", "msw/*", "@tanstack/*"],
+                "message": "Game rules must stay independent of rendering, React and the network."
+              },
+              {
+                "group": ["**/app/**", "**/features/**", "**/mocks/**", "**/shared/**", "**/rendering/**", "**/runtime/**", "**/input/**", "**/assets/**"],
+                "message": "Game rules may only import from game/core and game/config."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }
