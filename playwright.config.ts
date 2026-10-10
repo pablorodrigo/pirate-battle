@@ -10,6 +10,10 @@ export default defineConfig({
   testIgnore: '**/profile/**',
   fullyParallel: true,
   forbidOnly: isCI,
+  // CI has no GPU: WebGL and page compositing run in software, so frames,
+  // input and assertions are several times slower there, above all at the
+  // mobile project's pixel density. The checks stay the same; they get more time.
+  timeout: isCI ? 60_000 : 30_000,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: `http://localhost:${PREVIEW_PORT}`,
@@ -20,6 +24,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   expect: {
+    timeout: isCI ? 10_000 : 5_000,
     // Baselines are versioned per platform; a small ratio absorbs GPU anti-aliasing noise.
     toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' },
   },
