@@ -15,15 +15,24 @@ function soundRequests(context: BrowserContext): Set<string> {
   return files
 }
 
-test('loads the sound effects in the background once a match starts', async ({ page, context }) => {
+/** The menus' sounds are the pack's `ui_` files; every other file belongs to a match. */
+const isInterfaceSound = (path: string) => /\/ui_/.test(path)
+
+test('loads the menu sounds at the first press and the match sounds once a match starts', async ({ page, context }) => {
   const files = soundRequests(context)
+  const loaded = (interfaceSounds: boolean) => [...files].filter((path) => isInterfaceSound(path) === interfaceSounds)
   await page.goto('/')
   await expect(page.getByRole('status').filter({ hasText: 'Mock API' })).toHaveText('Mock API: online')
   expect(files.size).toBe(0)
 
+  await page.getByRole('button', { name: 'Options' }).click()
+  await expect.poll(() => loaded(true).length).toBe(4)
+  await page.getByRole('button', { name: 'Main Menu' }).click()
+  expect(loaded(false)).toEqual([])
+
   await page.getByRole('button', { name: 'Play' }).click()
   await expectGameReady(page)
-  await expect.poll(() => files.size).toBe(21)
+  await expect.poll(() => loaded(false).length).toBe(22)
 })
 
 test('downloads no sound while sound effects are off', async ({ page, context }) => {
