@@ -2,6 +2,9 @@
 
 A top-down 2D naval shooter for the browser, built with React, TypeScript and PixiJS.
 
+- **Live demo:** <https://pirate-battle-nu.vercel.app/>
+- **Delivery estimate:** Sunday, October 11, 2026, by 11:00 (UTC−03:00), covering the full scope of the challenge. Recorded on October 10, 2026, before gameplay development started.
+
 ## Tech stack
 
 | Concern | Technology |
