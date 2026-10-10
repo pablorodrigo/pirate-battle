@@ -1,10 +1,12 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import type { MatchSettings } from '../../game/config/matchSettings.ts'
 import type { MatchResult } from '../../game/core/GameSession.ts'
 import type { HudSnapshot } from '../../game/runtime/GameRuntime.ts'
 import styles from './GameScreen.module.css'
 import { Hud } from './Hud.tsx'
 import { PauseDialog } from './PauseDialog.tsx'
+import { TouchControls } from './TouchControls.tsx'
+import { usePortraitTouch, useTouchDevice } from './useDeviceTraits.ts'
 import { useGameRuntime } from './useGameRuntime.ts'
 import { useMatchHud } from './useMatchHud.ts'
 
@@ -19,39 +21,56 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
   const { state, retry } = useGameRuntime(hostRef, settings, onFinished)
   const runtime = state.status === 'ready' ? state.runtime : null
   const hud = useMatchHud(runtime)
+  const touch = useTouchDevice()
+  const portrait = usePortraitTouch()
+
+  // Touch devices play in landscape: turning to portrait pauses without changing any rule.
+  useEffect(() => {
+    if (portrait) {
+      runtime?.pause('orientation')
+    }
+  }, [portrait, runtime])
 
   return (
-    <main className={styles.screen}>
+    <main className={styles.screen} data-touch={touch}>
       <h1 className={styles.visuallyHidden}>Battle</h1>
       <Hud hud={hud} onPause={() => runtime?.pause('manual')} />
-      <div
-        className={styles.arena}
-        data-testid="game-canvas"
-        data-state={state.status}
-        data-renderer={state.status === 'ready' ? state.rendererName : undefined}
-      >
-        <div ref={hostRef} className={styles.host} role="img" aria-label="Battle arena" />
-        {state.status === 'loading' && (
-          <div className={styles.overlay}>
-            <p id="loading-label">Loading the fleet…</p>
-            <progress
-              aria-labelledby="loading-label"
-              max={100}
-              value={Math.round(state.progress * 100)}
-            />
+      <div className={styles.playfield}>
+        {touch && (
+          <div className={styles.controls}>
+            <TouchControls input={runtime?.input ?? null} group="movement" />
           </div>
         )}
-        {state.status === 'error' && (
-          <div className={styles.overlay} role="alert">
-            <p>The game assets could not be loaded. Check your connection and try again.</p>
-            <div className={styles.actions}>
-              <button type="button" onClick={retry}>
-                Retry
-              </button>
-              <button type="button" onClick={onExit}>
-                Main Menu
-              </button>
+        <div
+          className={styles.arena}
+          data-testid="game-canvas"
+          data-state={state.status}
+          data-renderer={state.status === 'ready' ? state.rendererName : undefined}
+        >
+          <div ref={hostRef} className={styles.host} role="img" aria-label="Battle arena" />
+          {state.status === 'loading' && (
+            <div className={styles.overlay}>
+              <p id="loading-label">Loading the fleet…</p>
+              <progress aria-labelledby="loading-label" max={100} value={Math.round(state.progress * 100)} />
             </div>
+          )}
+          {state.status === 'error' && (
+            <div className={styles.overlay} role="alert">
+              <p>The game assets could not be loaded. Check your connection and try again.</p>
+              <div className={styles.actions}>
+                <button type="button" onClick={retry}>
+                  Retry
+                </button>
+                <button type="button" onClick={onExit}>
+                  Main Menu
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        {touch && (
+          <div className={styles.controls}>
+            <TouchControls input={runtime?.input ?? null} group="attacks" />
           </div>
         )}
       </div>

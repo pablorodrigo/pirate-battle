@@ -1,0 +1,56 @@
+.cluster {
+  display: grid;
+  grid-template-areas:
+    '. top .'
+    'left . right';
+  grid-template-columns: repeat(3, 3.25rem);
+  grid-template-rows: repeat(2, 3.25rem);
+  gap: 0.25rem;
+  /* The page never pans or zooms from a press on the controls. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  touch-action: none;
+}
+
+.button[data-area='top'] {
+  grid-area: top;
+}
+
+.button[data-area='left'] {
+  grid-area: left;
+}
+
+.button[data-area='right'] {
+  grid-area: right;
+}
+
+.frame,
+.icon {
+  position: absolute;
+  pointer-events: none;
+}
+
+.frame {
+  width: 100%;
+  height: 100%;
+}
+
+.icon {
+  width: 72%;
+  height: 72%;
+}

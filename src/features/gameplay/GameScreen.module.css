@@ -2,6 +2,22 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* Keep the HUD and controls clear of notches and rounded corners. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+.playfield {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Touch controls live beside the arena, never over it. */
+.controls {
+  display: flex;
+  align-items: flex-end;
+  padding: 0.5rem;
 }
 
 .visuallyHidden {
@@ -17,6 +33,7 @@
 .arena {
   position: relative;
   flex: 1;
+  min-width: 0;
   min-height: 0;
 }
 

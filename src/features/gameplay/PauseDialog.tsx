@@ -12,6 +12,7 @@ const REASON_TEXT: Readonly<Record<PauseReason, string>> = {
   manual: 'The match is paused.',
   blur: 'The match paused because the window lost focus.',
   hidden: 'The match paused because the tab was hidden.',
+  orientation: 'The match paused because the screen turned to portrait. Turn your device sideways to play.',
 }
 
 /**
