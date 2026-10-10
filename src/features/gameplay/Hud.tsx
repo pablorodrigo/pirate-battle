@@ -17,8 +17,9 @@ function healthColor(ratio: number): 'green' | 'amber' | 'red' {
 /**
  * Semantic match status drawn with the HUD art: the term of each value is
  * kept for assistive technology, while icons carry it visually. Its three
- * parts (health, counters, pause) sit in one row, or, in the landscape touch
- * layout, in the game screen's side columns.
+ * parts (health, counters, pause) sit in one row above the arena, in two rows
+ * in the portrait touch layout, or in the game screen's side columns in the
+ * landscape touch layout.
  */
 export function Hud({ hud, layout, onPause }: HudProps) {
   const health = hud?.health ?? 0

@@ -15,7 +15,7 @@ import { keepOnOpenWater, moveShip } from './systems/movement.ts'
 import { Spawner } from './systems/Spawner.ts'
 import { World } from './World.ts'
 
-export type PauseReason = 'manual' | 'blur' | 'hidden' | 'orientation'
+export type PauseReason = 'manual' | 'blur' | 'hidden'
 
 export type SessionStatus =
   | { readonly kind: 'ready' }

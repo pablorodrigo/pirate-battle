@@ -67,17 +67,27 @@ test('turns with the on-screen buttons', async ({ page }) => {
   expect((await matchState(page)).player.angle).toBeCloseTo(Math.PI / 2, 2)
 })
 
-test('pauses in portrait and resumes only on request', async ({ page }) => {
-  await startMatch(page, { spawns: false })
+test('keeps playing when the screen turns, with the controls in their new place', async ({ page }) => {
+  await startMatch(page, { spawns: false, player: { x: 200, y: 60, angle: 0 } })
   const landscape = page.viewportSize() ?? { width: 863, height: 360 }
+  const screen = page.getByRole('main')
 
+  // Turning to portrait changes the layout only: no pause, same match.
   await page.setViewportSize({ width: landscape.height, height: landscape.width })
-  const dialog = page.getByRole('dialog', { name: 'Paused' })
-  await expect(dialog).toContainText('portrait')
+  await expect(screen).toHaveAttribute('data-layout', 'portrait')
+  await expect(page.getByRole('dialog', { name: 'Paused' })).toBeHidden()
+  expect((await matchState(page)).status).toBe('running')
+
+  const touch = await page.context().newCDPSession(page)
+  const forward = await pointOf(page, 'Sail forward', 1)
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [forward] })
+  await expectPressed(page, 'Sail forward', true)
+  await advance(page, 30)
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [forward] })
+  await expectPressed(page, 'Sail forward', false)
+  expect((await matchState(page)).player.x).toBeCloseTo(200 + 90, 0)
 
   await page.setViewportSize(landscape)
-  await expect(dialog).toBeVisible()
-  await dialog.getByRole('button', { name: 'Resume' }).click()
-  await expect(dialog).toBeHidden()
+  await expect(screen).toHaveAttribute('data-layout', 'landscape')
   expect((await matchState(page)).status).toBe('running')
 })

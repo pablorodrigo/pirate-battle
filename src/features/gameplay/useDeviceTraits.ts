@@ -12,21 +12,28 @@ function mediaQueryStore(query: string) {
 }
 
 const touch = mediaQueryStore('(pointer: coarse)')
-const portraitTouch = mediaQueryStore('(pointer: coarse) and (orientation: portrait)')
+const portrait = mediaQueryStore('(orientation: portrait)')
 
 /**
  * How the game screen arranges the HUD and the controls around the arena:
- * keyboard players get the HUD above it; touch screens in landscape get the
- * HUD and the on-screen controls in the columns beside it.
+ * keyboard players get the HUD above it. Touch screens play in both
+ * orientations: landscape puts the HUD and the on-screen controls in the
+ * columns beside the arena, portrait puts the HUD above it and the controls
+ * below it.
  */
-export type ScreenLayout = 'keyboard' | 'landscape'
+export type ScreenLayout = 'keyboard' | 'landscape' | 'portrait'
 
 /** Touch screens get on-screen controls. */
-export function useTouchDevice(): boolean {
+function useTouchDevice(): boolean {
   return useSyncExternalStore(touch.subscribe, touch.getSnapshot) || navigator.maxTouchPoints > 0
 }
 
-/** The match is played in landscape on touch devices; portrait pauses it. */
-export function usePortraitTouch(): boolean {
-  return useSyncExternalStore(portraitTouch.subscribe, portraitTouch.getSnapshot)
+/** Follows the device as it turns; the match rules never depend on it. */
+export function useScreenLayout(): ScreenLayout {
+  const touchDevice = useTouchDevice()
+  const upright = useSyncExternalStore(portrait.subscribe, portrait.getSnapshot)
+  if (!touchDevice) {
+    return 'keyboard'
+  }
+  return upright ? 'portrait' : 'landscape'
 }

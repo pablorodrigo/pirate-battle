@@ -62,6 +62,25 @@ async function screenParts(page: Page): Promise<Map<string, Box>> {
   return parts
 }
 
+/** Every part on screen, clear of the arena and of each other; every control large enough to touch. */
+function expectPartsApart(parts: ReadonlyMap<string, Box>, arena: Box, screen: Box): void {
+  expect(contains(screen, arena), 'the arena is on screen').toBe(true)
+  for (const [name, box] of parts) {
+    expect(contains(screen, box), `${name} is on screen`).toBe(true)
+    expect(overlaps(box, arena), `${name} stays off the arena`).toBe(false)
+    for (const [other, otherBox] of parts) {
+      if (other !== name) {
+        expect(overlaps(box, otherBox), `${name} stays clear of ${other}`).toBe(false)
+      }
+    }
+  }
+  for (const name of CONTROLS) {
+    const control = parts.get(name)
+    expect(control?.width, `${name} is wide enough to touch`).toBeGreaterThanOrEqual(44)
+    expect(control?.height, `${name} is tall enough to touch`).toBeGreaterThanOrEqual(44)
+  }
+}
+
 /** Phone viewports in landscape, with the arena scale each one must at least reach. */
 const LANDSCAPE_PHONES = [
   { name: 'iPhone SE', width: 667, height: 375, minScale: 0.35 },
@@ -74,25 +93,41 @@ for (const phone of LANDSCAPE_PHONES) {
   test(`fits the whole arena, the HUD and the controls apart on a ${phone.name} in landscape`, async ({ page }) => {
     await page.setViewportSize({ width: phone.width, height: phone.height })
     await startMatch(page, { spawns: false })
-    const screen: Box = { x: 0, y: 0, width: phone.width, height: phone.height }
+    await expect(page.getByRole('main')).toHaveAttribute('data-layout', 'landscape')
+    const arena = arenaOnScreen(await boxOf(page.getByTestId('game-canvas')))
+
+    expectPartsApart(await screenParts(page), arena, { x: 0, y: 0, width: phone.width, height: phone.height })
+    expect(arena.scale, 'the arena is drawn as large as the columns allow').toBeGreaterThanOrEqual(phone.minScale)
+  })
+}
+
+const PORTRAIT_PHONES = [
+  { name: 'iPhone SE', width: 375, height: 667 },
+  { name: 'iPhone 15', width: 393, height: 659 },
+  { name: 'Pixel 7', width: 412, height: 839 },
+]
+
+for (const phone of PORTRAIT_PHONES) {
+  test(`spans the arena edge to edge on a ${phone.name} in portrait`, async ({ page }) => {
+    await page.setViewportSize({ width: phone.width, height: phone.height })
+    await startMatch(page, { spawns: false })
+    await expect(page.getByRole('main')).toHaveAttribute('data-layout', 'portrait')
     const arena = arenaOnScreen(await boxOf(page.getByTestId('game-canvas')))
     const parts = await screenParts(page)
 
-    expect(contains(screen, arena), 'the arena is on screen').toBe(true)
-    expect(arena.scale, 'the arena is drawn as large as the columns allow').toBeGreaterThanOrEqual(phone.minScale)
-    for (const [name, box] of parts) {
-      expect(contains(screen, box), `${name} is on screen`).toBe(true)
-      expect(overlaps(box, arena), `${name} stays off the arena`).toBe(false)
-      for (const [other, otherBox] of parts) {
-        if (other !== name) {
-          expect(overlaps(box, otherBox), `${name} stays clear of ${other}`).toBe(false)
-        }
-      }
+    expectPartsApart(parts, arena, { x: 0, y: 0, width: phone.width, height: phone.height })
+    expect(arena.x, 'the arena starts at the left edge').toBeCloseTo(0, 0)
+    expect(arena.width, 'the arena reaches the right edge').toBeCloseTo(phone.width, 0)
+    for (const name of ['health', 'score', 'time', 'pause']) {
+      const box = parts.get(name)
+      expect((box?.y ?? Infinity) + (box?.height ?? 0), `${name} sits above the arena`).toBeLessThanOrEqual(
+        arena.y + TOLERANCE,
+      )
     }
     for (const name of CONTROLS) {
-      const control = parts.get(name)
-      expect(control?.width, `${name} is wide enough to touch`).toBeGreaterThanOrEqual(44)
-      expect(control?.height, `${name} is tall enough to touch`).toBeGreaterThanOrEqual(44)
+      expect(parts.get(name)?.y, `${name} sits below the arena`).toBeGreaterThanOrEqual(
+        arena.y + arena.height - TOLERANCE,
+      )
     }
   })
 }

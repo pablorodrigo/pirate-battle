@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef, type CSSProperties } from 'react'
+import { defaultArena } from '../../game/config/defaultArena.ts'
 import type { MatchSettings } from '../../game/config/matchSettings.ts'
 import type { MatchResult } from '../../game/core/GameSession.ts'
 import type { HudSnapshot } from '../../game/runtime/GameRuntime.ts'
@@ -7,10 +8,13 @@ import styles from './GameScreen.module.css'
 import { Hud } from './Hud.tsx'
 import { PauseDialog } from './PauseDialog.tsx'
 import { TouchControls } from './TouchControls.tsx'
-import { type ScreenLayout, usePortraitTouch, useTouchDevice } from './useDeviceTraits.ts'
+import { useScreenLayout } from './useDeviceTraits.ts'
 import { useGameRuntime } from './useGameRuntime.ts'
 import { useMatchHud } from './useMatchHud.ts'
 import { useNoPageZoom } from './useNoPageZoom.ts'
+
+/** Lets the portrait layout size the arena's box to the arena itself. */
+const ARENA_ASPECT = { '--arena-aspect': `${defaultArena.width} / ${defaultArena.height}` } as CSSProperties
 
 type GameScreenProps = {
   settings: MatchSettings
@@ -23,25 +27,17 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
   const { state, retry } = useGameRuntime(hostRef, settings, onFinished)
   const runtime = state.status === 'ready' ? state.runtime : null
   const hud = useMatchHud(runtime)
-  const touch = useTouchDevice()
-  const portrait = usePortraitTouch()
-  const layout: ScreenLayout = touch ? 'landscape' : 'keyboard'
+  const layout = useScreenLayout()
+  const touch = layout !== 'keyboard'
   useNoPageZoom()
 
-  // Touch devices play in landscape: turning to portrait pauses without changing any rule.
-  useEffect(() => {
-    if (portrait) {
-      runtime?.pause('orientation')
-    }
-  }, [portrait, runtime])
-
   return (
-    <main className={styles.screen} data-layout={layout}>
+    <main className={styles.screen} data-layout={layout} style={ARENA_ASPECT}>
       <h1 className={styles.visuallyHidden}>Battle</h1>
       <Hud hud={hud} layout={layout} onPause={() => runtime?.pause('manual')} />
       {touch && (
         <div className={styles.movement}>
-          <TouchControls input={runtime?.input ?? null} group="movement" />
+          <TouchControls input={runtime?.input ?? null} group="movement" layout={layout} />
         </div>
       )}
       <div
@@ -71,7 +67,7 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
       </div>
       {touch && (
         <div className={styles.attacks}>
-          <TouchControls input={runtime?.input ?? null} group="attacks" />
+          <TouchControls input={runtime?.input ?? null} group="attacks" layout={layout} />
         </div>
       )}
       <p className={styles.visuallyHidden} role="status">

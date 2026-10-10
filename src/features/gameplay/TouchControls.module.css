@@ -10,6 +10,14 @@
   gap: var(--control-gap);
 }
 
+/* Portrait leaves room below the arena, so the triangle spreads out. */
+.cluster[data-layout='portrait'] {
+  grid-template-areas:
+    '. top .'
+    'left . right';
+  grid-template-columns: repeat(3, var(--control-size));
+}
+
 .button {
   position: relative;
   display: grid;

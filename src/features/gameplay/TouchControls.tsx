@@ -17,6 +17,7 @@ import iconTurnLeft2x from '../../../assets/png/retina/ui/controls/icon_turn_lef
 import iconTurnRight2x from '../../../assets/png/retina/ui/controls/icon_turn_right.png'
 import type { GameAction, InputManager } from '../../game/input/InputManager.ts'
 import styles from './TouchControls.module.css'
+import type { ScreenLayout } from './useDeviceTraits.ts'
 
 type ControlButton = {
   readonly action: GameAction
@@ -43,13 +44,19 @@ const srcSet = ([oneX, twoX]: readonly [string, string]) => `${oneX} 1x, ${twoX}
 type TouchControlsProps = {
   input: InputManager | null
   group: 'movement' | 'attacks'
+  layout: ScreenLayout
 }
 
 /** One cluster of on-screen controls; each finger holds its own action. */
-export function TouchControls({ input, group }: TouchControlsProps) {
+export function TouchControls({ input, group, layout }: TouchControlsProps) {
   const buttons = group === 'movement' ? MOVEMENT : ATTACKS
   return (
-    <div className={styles.cluster} role="group" aria-label={group === 'movement' ? 'Movement' : 'Cannons'}>
+    <div
+      className={styles.cluster}
+      role="group"
+      aria-label={group === 'movement' ? 'Movement' : 'Cannons'}
+      data-layout={layout}
+    >
       {buttons.map((button) => (
         <TouchButton key={button.action} button={button} input={input} />
       ))}

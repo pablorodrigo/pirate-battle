@@ -33,6 +33,37 @@
     max(env(safe-area-inset-bottom), 0.25rem) max(env(safe-area-inset-left), 0.25rem);
 }
 
+/*
+ * In portrait the arena spans the full width, edge to edge, centred between
+ * the HUD above it and the controls below, near the thumbs. The HUD and the
+ * controls always keep their size; on a short screen the arena shrinks.
+ */
+.screen[data-layout='portrait'] {
+  --control-size: clamp(2.75rem, 14vw, 4rem);
+  --control-gap: 0.25rem;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'hud      hud'
+    'arena    arena'
+    'movement attacks';
+  row-gap: 0.5rem;
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
+.screen[data-layout='portrait'] .arena {
+  align-self: center;
+  max-height: 100%;
+  aspect-ratio: var(--arena-aspect);
+}
+
+.screen[data-layout='portrait'] .movement,
+.screen[data-layout='portrait'] .attacks {
+  justify-self: center;
+}
+
 .movement {
   grid-area: movement;
 }
