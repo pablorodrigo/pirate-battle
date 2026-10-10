@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useState, type RefObject } from 'react'
 import { loadGameTextures } from '../../game/assets/gameTextures.ts'
+import { MatchSounds } from '../../game/audio/MatchSounds.ts'
+import { soundBank } from '../../game/audio/SoundBank.ts'
 import { defaultArena } from '../../game/config/defaultArena.ts'
 import { createMatchConfig, type MatchSettings } from '../../game/config/matchSettings.ts'
 import { GameSession, type MatchResult } from '../../game/core/GameSession.ts'
@@ -15,9 +17,10 @@ export type GameRuntimeState =
 
 /**
  * Loads the match textures (shared across matches), then creates the match,
- * the renderer and the runtime for one visit of the game screen and releases
- * all of them when the screen unmounts. A match never survives leaving the
- * screen, and combat only starts once every required resource is ready.
+ * the renderer, its sounds and the runtime for one visit of the game screen
+ * and releases all of them when the screen unmounts. A match never survives
+ * leaving the screen, and combat only starts once every required resource is
+ * ready. Sounds are not required: they load in the background.
  */
 export function useGameRuntime(
   hostRef: RefObject<HTMLDivElement | null>,
@@ -36,6 +39,8 @@ export function useGameRuntime(
     let active = true
     let renderer: PixiRenderer | null = null
     let runtime: GameRuntime | null = null
+    let sounds: MatchSounds | null = null
+    let stopSounds: (() => void) | null = null
     const hooks = testHooks.current
 
     const start = async (): Promise<void> => {
@@ -59,18 +64,29 @@ export function useGameRuntime(
       })
       applyScenario(session, scenario, config)
       const view = new PixiRenderer(defaultArena, textures)
+      const matchSounds = new MatchSounds(soundBank)
       const match = new GameRuntime({
         session,
-        view,
+        // Each frame's events reach the sounds right after the renderer.
+        view: {
+          onFrame: (callback) => view.onFrame(callback),
+          render: (world, alpha, events) => {
+            view.render(world, alpha, events)
+            matchSounds.handleEvents(events)
+          },
+        },
         onFinished: (result) => handleFinished(result),
         manualClock: scenario.manualClock ?? false,
       })
       renderer = view
       runtime = match
+      sounds = matchSounds
       await view.mount(host)
       if (!active) {
         return
       }
+      matchSounds.handleHud(match.getHudSnapshot())
+      stopSounds = match.subscribe(() => matchSounds.handleHud(match.getHudSnapshot()))
       match.start()
       hooks?.attach(match)
       setState({ status: 'ready', runtime: match, rendererName: view.rendererName })
@@ -85,6 +101,8 @@ export function useGameRuntime(
 
     return () => {
       active = false
+      stopSounds?.()
+      sounds?.dispose()
       if (runtime) {
         hooks?.detach(runtime)
         runtime.dispose()

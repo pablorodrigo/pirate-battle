@@ -6,7 +6,7 @@ This document explains how Pirate Battle is organized and why. It grows with the
 
 The application has three parts that change for different reasons:
 
-- **Game** (`src/game`): configuration, rules, input, assets and rendering of the battle. Rules are plain TypeScript in `game/core`; PixiJS in `game/rendering` only draws their state.
+- **Game** (`src/game`): configuration, rules, input, assets, rendering and sound of the battle. Rules are plain TypeScript in `game/core`; PixiJS in `game/rendering` only draws their state, and `game/audio` only plays it.
 - **Interface** (`src/app`, `src/features`): React screens, menus, the HUD, dialogs and touch controls.
 - **Data** (`src/shared/api`, `src/shared/contracts`, `src/mocks`, `src/features/registration`): the HTTP client, the contracts it shares with the mock server, the MSW handlers that implement that server in the browser, and the outbox that registers finished matches.
 
@@ -25,7 +25,7 @@ React lists ─► TanStack Query ─► Axios ─► MSW handlers ─► mock d
 | Module | May import | Must not import |
 | --- | --- | --- |
 | `game/core`, `game/config` | Each other | PixiJS, React, Axios, MSW, TanStack Query, any other module |
-| Other `game/` modules (`assets`, `input`, `rendering`, `runtime`) | PixiJS, `game/core`, `game/config`, each other | React, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api` |
+| Other `game/` modules (`assets`, `audio`, `input`, `rendering`, `runtime`) | PixiJS, `game/core`, `game/config`, each other | React, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api` |
 | `shared/contracts` | Other contracts, `game/config` | React, PixiJS, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api`, game rendering and runtime |
 | `shared/api` | Axios, `shared/contracts` | React, PixiJS, MSW, TanStack Query, `app`, `features`, `game`, `mocks` |
 | `mocks` | MSW, `shared/contracts`, `shared/storage`, `shared/api` configuration | React, PixiJS, Axios, TanStack Query, `app`, `features` |
@@ -109,6 +109,14 @@ The match pauses from the Pause button, `P` or `Escape`, when the window loses f
 
 **Viewport.** The arena has a fixed logical size of 1280 × 720 units. A `ResizeObserver` on the host element resizes the renderer, scales the scene uniformly by `min(width / 1280, height / 720)` and centers it with letterbox margins. The host is absolutely positioned, so the canvas size never feeds back into the observed size. The resolution follows `devicePixelRatio`, capped at 2, with `autoDensity`.
 
+## Audio
+
+`SoundBank` plays the provided WAV files through one Web Audio context shared by every match, like the textures. Browsers only allow audio to start inside a user gesture, so the Play buttons unlock it, and so does resuming a match. Sound is never required: files load in the background once a match has started, and only while sound is on, so they never compete with the textures a match waits for. A sound that is not ready yet, or failed to load, is skipped; the first match may therefore start in silence.
+
+`MatchSounds` turns one match into sound and never changes it. Combat comes from the events of each frame: cannons, broadsides, hits on wood or splashes, explosions, rams, the player's ship sinking and the points scored. Each sound plays at most once per frame, however many events ask for it, and enemy fire is quieter than the player's. The start, pauses, the last five seconds and the drop below a third of health come from the HUD snapshot. The ocean ambience loops while the match runs and stops when it pauses, ends or leaves the screen.
+
+The setting is stored on its own, outside the match settings, and applies at once: Options saves it with the other settings, and the pause menu has the same switch. While sound is off, no sound file is downloaded.
+
 ## UI skin
 
 `installUiSkin` reads `ui_sheet.json` and publishes it as CSS custom properties before the first render. Each image is an `image-set` of its 1× and 2× files, resolved from its `ui.image` path, which is relative to the atlas. Sizes, borders and insets stay in the atlas's logical (1×) units, so the retina files never double a control's size:
@@ -152,6 +160,7 @@ The result screen shows the registration status of its own match (saving, saved,
 | `pirate-battle:journal` | Match journal | Last result, its reopen flag and the outbox, until confirmed or reset. |
 | `pirate-battle:mock-database` | Mock server | Confirmed matches and the revision, until a demo reset. |
 | `pirate-battle:network-scenario` | Mock server | The selected scenario. |
+| `pirate-battle:sound` | Sound setting | Until changed. |
 
 Every entry is stored as `{ version, data }` and validated on read; an older version or corrupt data is ignored instead of trusted. Writes report failures (blocked or full storage), and the result screen warns when a match could not be stored. The journal assumes a single tab writing at a time.
 
@@ -166,7 +175,7 @@ Every entry is stored as `{ version, data }` and validated on read; an older ver
 
 ## Testing
 
-- **Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, configuration, the atlas parser, the mock database, the revision guard, the registration outbox and screen navigation.
+- **Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, configuration, the atlas parser, the mock database, the revision guard, the registration outbox, the match sounds and screen navigation.
 - **End-to-end tests** (Playwright) run against the e2e build (`vite --mode e2e`), which installs a test bridge on `window.__PIRATE_BATTLE__`. Before a match starts, a scenario can set the seed, switch to a manual clock and place ships. During the match the bridge only reads state and advances whole steps. It never writes health or score, and tests act through real key presses, or held fingers through the Chrome DevTools Protocol, since Playwright's touchscreen only taps. The public build leaves the bridge out, because the flag that loads it is replaced at build time.
 - **Requests from the page go through MSW's service worker**, which fetches unhandled requests itself, so tests intercept asset requests with `context.route` (which sees service worker traffic) rather than `page.route`.
 - **Strict Mode** double mounting only happens in development builds, so the `dev-strict-mode` project runs the same suite against the dev server.
@@ -203,6 +212,6 @@ Two front shots sink a Chaser and two sink a Shooter; a full broadside (45 damag
 
 - Only one tab should play at a time: two tabs share the journal and the mock database without coordination.
 - Service workers, and therefore the mock API, need a secure context: a phone on the local network must open the dev server through HTTPS (for example a Vercel preview) to reach the API. The game itself still runs.
-- Sound effects are not played yet; feedback is visual.
+- The interface itself is silent: the pack's interface sounds and its sailing loop are not used.
 - Number fields display decimals in the browser's own locale (for example `2,5`).
 - In containers without a GPU, WebGL runs in software, which is slower but renders identically for the visual baselines.

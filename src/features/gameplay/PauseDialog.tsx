@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import type { PauseReason } from '../../game/core/GameSession.ts'
 import { Button } from '../../shared/ui/Button.tsx'
+import { Checkbox } from '../../shared/ui/Checkbox.tsx'
 import panelStyles from '../../shared/ui/Panel.module.css'
+import { saveSoundEnabled, useSoundEnabled } from '../options/soundStore.ts'
 import styles from './PauseDialog.module.css'
 
 type PauseDialogProps = {
@@ -23,6 +25,7 @@ const REASON_TEXT: Readonly<Record<PauseReason, string>> = {
  */
 export function PauseDialog({ reason, onResume, onExit }: PauseDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const soundEnabled = useSoundEnabled()
 
   useEffect(() => {
     const dialog = dialogRef.current
@@ -57,6 +60,12 @@ export function PauseDialog({ reason, onResume, onExit }: PauseDialogProps) {
         <Button variant="secondary" onClick={onExit}>
           Main Menu
         </Button>
+      </div>
+      {/* Applies at once, and also to later matches. */}
+      <div className={styles.settings}>
+        <Checkbox checked={soundEnabled} onChange={saveSoundEnabled}>
+          Sound effects
+        </Checkbox>
       </div>
     </dialog>
   )

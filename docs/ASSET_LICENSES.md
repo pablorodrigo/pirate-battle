@@ -18,13 +18,14 @@ The project adds no complementary resources: no other images, sounds or fonts. T
 | `png/default/ui/**` and `png/retina/ui/**` | Menu panel, buttons, HUD counters, health bars, icons and the title, at 1× and 2×. |
 | `ui_scene_background.png` | Background of the menus. |
 | `png/default/ships/ship_1.png` | Browser tab icon. |
+| `sounds/` (21 of the 27 files) | Cannons and broadsides, hits on wood and water, explosions, collisions, sinking, points, low health, the final countdown, match start, pause, resume and end, and the ocean ambience. |
 
 Files the game does not use:
 
 - `png/*/ships`, `png/*/ship_parts`, `png/*/effects` and `png/*/tiles`: the individual files of the art that the two sheets above already contain.
 - `spritesheet/ships_miscellaneous_sheet_retina.*`: it has the same size (1024 × 512) and frames as the 1× sheet, so it adds no detail.
 - `spritesheet/ui_sheet_retina.json`: the 1× atlas already gives the logical sizes, and each 2× image sits at the same path under `png/retina`.
-- `sounds/`: the game plays no audio yet.
+- `sounds/ship_sailing_loop.wav` and the five `sounds/ui_*.wav` files: the interface is silent and the ship has no engine sound.
 - `vector/`: source files of the art.
 - `preview.png`, `sample_*.png` and `logo_jungle_gaming.svg`: references for the challenge, not game assets.
 
@@ -36,6 +37,7 @@ The files are used as they are; these steps happen in the browser or in the bund
 - **Terrain.** Water and island tiles are drawn once per match into canvas textures, at whole-unit positions, so neighbouring texels never bleed into seams when the scene is scaled.
 - **Ships and effects.** Sprites are rotated to their heading (the art faces down), scaled to their collision radius, and briefly tinted red when hit.
 - **Interface.** `src/shared/ui/uiSkin.ts` turns `ui_sheet.json` into CSS custom properties: each image becomes an `image-set` of its 1× and 2× files, panels become nine-slices, and health bars clip their fill to the atlas's fill area.
+- **Sounds.** The browser decodes the WAV files with the Web Audio API and plays them at fixed relative volumes; the ocean ambience loops.
 - **Bundling.** Vite copies every referenced file into the build under a content-hashed name, and inlines files under 4 KB as data URLs.
 
 ## Code dependencies

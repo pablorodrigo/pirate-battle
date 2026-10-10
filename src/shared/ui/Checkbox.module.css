@@ -1,0 +1,16 @@
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.checkbox input {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}

@@ -8,9 +8,11 @@ import {
 } from '../../game/config/matchSettings.ts'
 import backdrop from '../../shared/ui/Backdrop.module.css'
 import { Button } from '../../shared/ui/Button.tsx'
+import { Checkbox } from '../../shared/ui/Checkbox.tsx'
 import { Panel } from '../../shared/ui/Panel.tsx'
 import styles from './OptionsScreen.module.css'
 import { saveSettings, useSettings } from './settingsStore.ts'
+import { saveSoundEnabled, useSoundEnabled } from './soundStore.ts'
 
 type OptionsScreenProps = {
   onBack: () => void
@@ -20,8 +22,10 @@ type SaveStatus = 'idle' | 'saved' | 'unsaved'
 
 export function OptionsScreen({ onBack }: OptionsScreenProps) {
   const settings = useSettings()
+  const soundEnabled = useSoundEnabled()
   const [duration, setDuration] = useState(String(settings.matchDurationSeconds))
   const [spawnInterval, setSpawnInterval] = useState(String(settings.spawnIntervalSeconds))
+  const [sound, setSound] = useState(soundEnabled)
   const [errors, setErrors] = useState<MatchSettingsErrors>({})
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -46,12 +50,15 @@ export function OptionsScreen({ onBack }: OptionsScreenProps) {
       ;(found.matchDurationSeconds ? durationRef : spawnRef).current?.focus()
       return
     }
-    setSaveStatus(saveSettings(candidate) ? 'saved' : 'unsaved')
+    const settingsStored = saveSettings(candidate)
+    const soundStored = saveSoundEnabled(sound)
+    setSaveStatus(settingsStored && soundStored ? 'saved' : 'unsaved')
   }
 
   function restoreDefaults(): void {
     setDuration(String(defaultMatchSettings.matchDurationSeconds))
     setSpawnInterval(String(defaultMatchSettings.spawnIntervalSeconds))
+    setSound(true)
     setErrors({})
     setSaveStatus('idle')
   }
@@ -85,6 +92,9 @@ export function OptionsScreen({ onBack }: OptionsScreenProps) {
             error={errors.spawnIntervalSeconds}
             onChange={setSpawnInterval}
           />
+          <Checkbox checked={sound} onChange={setSound}>
+            Play sound effects
+          </Checkbox>
           <p className={styles.status} role="status">
             {saveStatus === 'saved' && 'Settings saved. They apply to your next match.'}
             {saveStatus === 'unsaved' &&

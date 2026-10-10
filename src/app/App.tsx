@@ -1,4 +1,5 @@
 import { useReducer } from 'react'
+import { soundBank } from '../game/audio/SoundBank.ts'
 import { createMatchConfig, rulesetIdOf, type MatchSettings } from '../game/config/matchSettings.ts'
 import type { MatchResult } from '../game/core/GameSession.ts'
 import { GameScreen } from '../features/gameplay/GameScreen.tsx'
@@ -46,6 +47,8 @@ export function App() {
   }
   // Each match gets a new id and runs on the settings saved when it starts.
   const play = () => {
+    // Browsers only allow audio to start inside a user gesture, such as this click.
+    soundBank.unlock()
     matchJournal.dismissResult()
     dispatch({ type: 'play', matchId: createId(), settings: getSettings() })
   }

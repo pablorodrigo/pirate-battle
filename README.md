@@ -55,6 +55,8 @@ npx playwright install chromium
 
 Moving, turning and firing can be combined, with keys or with several fingers. Holding a fire control keeps firing as soon as each cannon's cooldown ends. Keys are only captured while a match is running.
 
+Sound effects are on by default. Options turns them off, and so does the switch in the pause menu, which applies at once.
+
 The match pauses on its own when the window loses focus, the tab is hidden or, on a touch device, the screen turns to portrait. Resuming always needs an explicit action, and keys or fingers held through a pause must be pressed again.
 
 **Supported orientation:** on phones and tablets the match is played in landscape, with the touch controls beside the arena. Menus work in both orientations.
@@ -70,7 +72,7 @@ Options exposes two of them, validated and kept after a reload:
 | Game session time | 60–180 s, whole seconds | 120 s |
 | Enemy spawn time | 1–10 s, steps of 0.5 s | 2.5 s |
 
-Each match runs on a snapshot of the settings taken when it starts, so changes apply to the next match. The ranking only compares matches played with the same settings.
+Each match runs on a snapshot of the settings taken when it starts, so changes apply to the next match. The ranking only compares matches played with the same settings. Options also keeps the sound setting, which is not part of the rules.
 
 ## Network scenarios
 
@@ -113,6 +115,7 @@ The ranking and history API is mocked with MSW, in development, in the tests and
 | `pirate-battle:journal` | The last result, whether to reopen it, and the outbox of registrations not confirmed yet. |
 | `pirate-battle:mock-database` | The mock server's confirmed matches and data revision. |
 | `pirate-battle:network-scenario` | The selected network scenario. |
+| `pirate-battle:sound` | Whether sound effects are on. |
 
 Every entry is versioned and validated on read; corrupt or outdated data is ignored. If storage is blocked or full, the game keeps working and the result screen says that the match will not survive a reload. Clearing the site data starts over.
 
@@ -148,7 +151,7 @@ Every variable is optional and public: Vite inlines `VITE_*` values into the cli
 
 ## Tests
 
-**Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, configuration, the mock database, the revision guard, the registration outbox and screen navigation.
+**Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, configuration, the mock database, the revision guard, the registration outbox, the match sounds and screen navigation.
 
 **End-to-end tests** (Playwright) run in three Chromium projects:
 
@@ -194,6 +197,7 @@ src/
     results/         Result screen
   game/              Game code, free of React
     assets/          Texture loading and the ship atlas parser
+    audio/           Sound effects of a match and the shared sound bank
     config/          Typed rule configuration and the arena layout
     core/            Rules, entities, navigation and math, free of PixiJS and the DOM
     input/           Keyboard and touch input normalized into game actions
