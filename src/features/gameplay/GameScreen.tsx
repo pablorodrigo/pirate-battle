@@ -16,8 +16,8 @@ type GameScreenProps = {
 
 export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
   const hostRef = useRef<HTMLDivElement>(null)
-  const runtimeState = useGameRuntime(hostRef, settings, onFinished)
-  const runtime = runtimeState.status === 'ready' ? runtimeState.runtime : null
+  const { state, retry } = useGameRuntime(hostRef, settings, onFinished)
+  const runtime = state.status === 'ready' ? state.runtime : null
   const hud = useMatchHud(runtime)
 
   return (
@@ -27,15 +27,32 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
       <div
         className={styles.arena}
         data-testid="game-canvas"
-        data-state={runtimeState.status}
-        data-renderer={runtimeState.status === 'ready' ? runtimeState.rendererName : undefined}
+        data-state={state.status}
+        data-renderer={state.status === 'ready' ? state.rendererName : undefined}
       >
         <div ref={hostRef} className={styles.host} role="img" aria-label="Battle arena" />
-        {runtimeState.status === 'loading' && <p className={styles.message}>Loading…</p>}
-        {runtimeState.status === 'error' && (
-          <p className={styles.message} role="alert">
-            The game could not start.
-          </p>
+        {state.status === 'loading' && (
+          <div className={styles.overlay}>
+            <p id="loading-label">Loading the fleet…</p>
+            <progress
+              aria-labelledby="loading-label"
+              max={100}
+              value={Math.round(state.progress * 100)}
+            />
+          </div>
+        )}
+        {state.status === 'error' && (
+          <div className={styles.overlay} role="alert">
+            <p>The game assets could not be loaded. Check your connection and try again.</p>
+            <div className={styles.actions}>
+              <button type="button" onClick={retry}>
+                Retry
+              </button>
+              <button type="button" onClick={onExit}>
+                Main Menu
+              </button>
+            </div>
+          </div>
         )}
       </div>
       <p className={styles.visuallyHidden} role="status">

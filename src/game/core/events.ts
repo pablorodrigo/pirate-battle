@@ -11,7 +11,7 @@ export type GameEvent =
   | { readonly type: 'shotFired'; readonly shipId: number; readonly cannon: CannonKind; readonly x: number; readonly y: number; readonly angle: number }
   | { readonly type: 'projectileImpact'; readonly x: number; readonly y: number; readonly target: 'ship' | 'island' }
   | { readonly type: 'shipDamaged'; readonly shipId: number; readonly kind: ShipKind; readonly damage: number; readonly health: number }
-  | { readonly type: 'shipDestroyed'; readonly shipId: number; readonly kind: ShipKind; readonly cause: 'projectile' | 'collision'; readonly x: number; readonly y: number }
+  | { readonly type: 'shipDestroyed'; readonly shipId: number; readonly kind: ShipKind; readonly cause: 'projectile' | 'collision'; readonly x: number; readonly y: number; readonly angle: number }
   | { readonly type: 'enemySpawned'; readonly shipId: number; readonly kind: ShipKind }
   | { readonly type: 'scoreChanged'; readonly score: number }
   | { readonly type: 'matchEnded'; readonly reason: EndReason }

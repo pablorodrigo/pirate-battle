@@ -1,59 +1,77 @@
-import { Container, Graphics, GraphicsContext } from 'pixi.js'
+import { Container, Graphics, GraphicsContext, Sprite, type Texture } from 'pixi.js'
+import type { GameTextures } from '../assets/gameTextures.ts'
 import type { GameEvent } from '../core/events.ts'
 
-/** Radius the shared shapes are tessellated at; effects scale relative to it. */
-const BASE_RADIUS = 32
+/** Radius the shared ring is tessellated at; rings scale relative to it. */
+const RING_RADIUS = 32
 
-type EffectStyle = {
-  readonly shape: 'disc' | 'ring'
-  readonly color: number
+type Animation = {
   readonly durationSteps: number
-  readonly fromRadius: number
-  readonly toRadius: number
+  readonly fromScale: number
+  readonly toScale: number
   readonly fromAlpha: number
 }
 
-const STYLES = {
-  muzzleFlash: { shape: 'disc', color: 0xffd36b, durationSteps: 6, fromRadius: 9, toRadius: 3, fromAlpha: 0.95 },
-  splash: { shape: 'ring', color: 0xe8f6ff, durationSteps: 14, fromRadius: 4, toRadius: 14, fromAlpha: 0.9 },
-  hit: { shape: 'disc', color: 0xff8a3d, durationSteps: 10, fromRadius: 10, toRadius: 4, fromAlpha: 1 },
-  explosion: { shape: 'disc', color: 0xff6a2b, durationSteps: 30, fromRadius: 14, toRadius: 54, fromAlpha: 0.95 },
-  shockwave: { shape: 'ring', color: 0xffd36b, durationSteps: 24, fromRadius: 10, toRadius: 70, fromAlpha: 0.8 },
-} as const satisfies Record<string, EffectStyle>
+const MUZZLE_FLASH: Animation = { durationSteps: 6, fromScale: 0.32, toScale: 0.12, fromAlpha: 1 }
+const HIT: Animation = { durationSteps: 12, fromScale: 0.3, toScale: 0.55, fromAlpha: 1 }
+const EXPLOSION: Animation = { durationSteps: 28, fromScale: 0.35, toScale: 1.1, fromAlpha: 1 }
+const SPLASH: Animation = { durationSteps: 16, fromScale: 4 / RING_RADIUS, toScale: 15 / RING_RADIUS, fromAlpha: 0.9 }
+const SINKING_STEPS = 70
 
 type ActiveEffect = {
-  readonly graphic: Graphics
-  readonly style: EffectStyle
+  readonly display: Sprite | Graphics
+  readonly animation: Animation
   readonly startStep: number
 }
 
 /**
- * Short visual effects driven by simulation time: they freeze while the match
- * is paused and look the same for the same match, which keeps screenshots
+ * Short effects driven by simulation time: they freeze while the match is
+ * paused and look the same for the same match, which keeps screenshots
  * reproducible. Effects only react to events; they never decide outcomes.
  */
 export class EffectLayer {
   readonly root = new Container()
+  private readonly textures: GameTextures
   private readonly effects: ActiveEffect[] = []
-  // Shared geometry, owned here and destroyed after every effect using it.
-  private readonly disc = new GraphicsContext().circle(0, 0, BASE_RADIUS).fill(0xffffff)
-  private readonly ring = new GraphicsContext().circle(0, 0, BASE_RADIUS).stroke({ width: 4, color: 0xffffff })
+  // Shared geometry owned here and destroyed after every effect that uses it.
+  private readonly ring = new GraphicsContext().circle(0, 0, RING_RADIUS).stroke({ width: 5, color: 0xffffff })
+
+  constructor(textures: GameTextures) {
+    this.textures = textures
+  }
+
+  get count(): number {
+    return this.effects.length
+  }
 
   handle(event: GameEvent, now: number): void {
+    const [largeExplosion, , smallExplosion] = this.textures.explosions
     switch (event.type) {
       case 'shotFired':
-        this.spawn(STYLES.muzzleFlash, event.x, event.y, now)
+        this.spawnSprite(smallExplosion, event.x, event.y, MUZZLE_FLASH, now)
         break
       case 'projectileImpact':
-        this.spawn(event.target === 'ship' ? STYLES.hit : STYLES.splash, event.x, event.y, now)
+        if (event.target === 'ship') {
+          this.spawnSprite(smallExplosion, event.x, event.y, HIT, now)
+        } else {
+          this.spawnRing(event.x, event.y, now)
+        }
         break
       case 'shipDestroyed':
-        this.spawn(STYLES.explosion, event.x, event.y, now)
-        this.spawn(STYLES.shockwave, event.x, event.y, now)
+        this.spawnSprite(largeExplosion, event.x, event.y, EXPLOSION, now)
         break
       default:
         break
     }
+  }
+
+  /** Leaves the wreck of a destroyed ship sinking where it went down, under its explosion. */
+  sinkWreck(texture: Texture, x: number, y: number, rotation: number, scale: number, now: number): void {
+    const animation = { durationSteps: SINKING_STEPS, fromScale: scale, toScale: scale * 0.75, fromAlpha: 1 }
+    const sprite = new Sprite({ texture, anchor: 0.5, x, y, rotation })
+    sprite.scale.set(scale)
+    this.add(sprite, animation, now)
+    this.root.setChildIndex(sprite, 0)
   }
 
   update(now: number): void {
@@ -62,39 +80,53 @@ export class EffectLayer {
       if (!effect) {
         continue
       }
-      const progress = (now - effect.startStep) / effect.style.durationSteps
+      const { durationSteps, fromScale, toScale, fromAlpha } = effect.animation
+      const progress = (now - effect.startStep) / durationSteps
       if (progress >= 1) {
-        effect.graphic.destroy()
+        effect.display.destroy()
         this.effects.splice(index, 1)
         continue
       }
-      const { fromRadius, toRadius, fromAlpha } = effect.style
-      effect.graphic.scale.set((fromRadius + (toRadius - fromRadius) * progress) / BASE_RADIUS)
-      effect.graphic.alpha = fromAlpha * (1 - progress)
+      effect.display.scale.set(fromScale + (toScale - fromScale) * progress)
+      // Hold full opacity for the first half, then fade out.
+      effect.display.alpha = fromAlpha * Math.min(1, 2 * (1 - progress))
     }
   }
 
-  get count(): number {
-    return this.effects.length
-  }
-
+  /** Sprites and Graphics are destroyed without options, so shared textures and contexts stay intact. */
   destroy(): void {
     for (const effect of this.effects) {
-      effect.graphic.destroy()
+      effect.display.destroy()
     }
     this.effects.length = 0
-    this.disc.destroy()
     this.ring.destroy()
     this.root.destroy()
   }
 
-  private spawn(style: EffectStyle, x: number, y: number, now: number): void {
-    const graphic = new Graphics(style.shape === 'disc' ? this.disc : this.ring)
-    graphic.tint = style.color
-    graphic.position.set(x, y)
-    graphic.scale.set(style.fromRadius / BASE_RADIUS)
-    graphic.alpha = style.fromAlpha
-    this.root.addChild(graphic)
-    this.effects.push({ graphic, style, startStep: now })
+  private spawnSprite(
+    texture: Texture,
+    x: number,
+    y: number,
+    animation: Animation,
+    now: number,
+    rotation = 0,
+  ): void {
+    const sprite = new Sprite({ texture, anchor: 0.5, x, y, rotation })
+    sprite.scale.set(animation.fromScale)
+    this.add(sprite, animation, now)
+  }
+
+  private spawnRing(x: number, y: number, now: number): void {
+    const ring = new Graphics(this.ring)
+    ring.position.set(x, y)
+    ring.tint = 0xe8f6ff
+    ring.scale.set(SPLASH.fromScale)
+    this.add(ring, SPLASH, now)
+  }
+
+  private add(display: Sprite | Graphics, animation: Animation, now: number): void {
+    display.alpha = animation.fromAlpha
+    this.root.addChild(display)
+    this.effects.push({ display, animation, startStep: now })
   }
 }

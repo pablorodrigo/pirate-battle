@@ -46,7 +46,15 @@ export function damageShip(
     return
   }
   ship.alive = false
-  world.emit({ type: 'shipDestroyed', shipId: ship.id, kind: ship.kind, cause, x: ship.x, y: ship.y })
+  world.emit({
+    type: 'shipDestroyed',
+    shipId: ship.id,
+    kind: ship.kind,
+    cause,
+    x: ship.x,
+    y: ship.y,
+    angle: ship.angle,
+  })
   if (ship.faction === 'enemy' && attacker === 'player' && cause === 'projectile') {
     world.score += 1
     world.emit({ type: 'scoreChanged', score: world.score })

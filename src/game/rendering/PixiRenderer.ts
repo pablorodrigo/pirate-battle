@@ -1,25 +1,17 @@
-import { Application, Container, Graphics, GraphicsContext, type Ticker } from 'pixi.js'
+import { Application, Container, Graphics, GraphicsContext, Sprite, type Ticker } from 'pixi.js'
+import type { GameTextures } from '../assets/gameTextures.ts'
 import type { ArenaDefinition } from '../config/ArenaDefinition.ts'
-import type { Faction, Projectile, Ship } from '../core/entities.ts'
+import type { Projectile, Ship } from '../core/entities.ts'
 import type { GameEvent } from '../core/events.ts'
 import type { World } from '../core/World.ts'
 import { EffectLayer } from './EffectLayer.ts'
 import { ShipView } from './ShipView.ts'
+import { Terrain } from './Terrain.ts'
 
 const MAX_RESOLUTION = 2
-
-const COLORS = {
-  letterbox: 0x0b2a3c,
-  water: 0x1f6f99,
-  sand: 0xe8d29b,
-  shore: 0xc9a65f,
-  outline: 0x0b2a3c,
-} as const
-
-const PROJECTILE_COLORS: Readonly<Record<Faction, number>> = {
-  player: 0xfdf6e3,
-  enemy: 0xff5a4e,
-}
+const LETTERBOX_COLOR = 0x0b2a3c
+const ENEMY_SHOT_TINT = 0xffb1a3
+const TRAIL_LENGTH = 22
 
 type RendererState = 'idle' | 'running' | 'destroyed'
 
@@ -32,28 +24,31 @@ type RendererState = 'idle' | 'running' | 'destroyed'
  */
 export class PixiRenderer {
   private readonly arena: ArenaDefinition
+  private readonly textures: GameTextures
   private readonly app = new Application()
   private readonly scene = new Container()
-  private readonly terrain = new Container()
+  private readonly terrain: Terrain
   private readonly shipLayer = new Container()
   private readonly projectileLayer = new Container()
-  private readonly effects = new EffectLayer()
+  private readonly effects: EffectLayer
   private readonly shipViews = new Map<number, ShipView>()
-  private readonly projectileViews = new Map<number, Graphics>()
-  private readonly projectileShapes: Readonly<Record<Faction, GraphicsContext>>
+  private readonly projectileViews = new Map<number, Container>()
+  // Shared by every projectile trail; destroyed once, after the trails.
+  private readonly trailShape = new GraphicsContext()
+    .rect(-TRAIL_LENGTH, -1.2, TRAIL_LENGTH, 2.4)
+    .fill({ color: 0xffffff, alpha: 0.5 })
   private readonly seenIds = new Set<number>()
   private resizeObserver: ResizeObserver | null = null
   private state: RendererState = 'idle'
 
-  constructor(arena: ArenaDefinition) {
+  constructor(arena: ArenaDefinition, textures: GameTextures) {
     this.arena = arena
-    this.projectileShapes = {
-      player: projectileShape(PROJECTILE_COLORS.player),
-      enemy: projectileShape(PROJECTILE_COLORS.enemy),
-    }
+    this.textures = textures
+    this.terrain = new Terrain(arena, textures)
+    this.effects = new EffectLayer(textures)
     // Attached up front so that destroying the application releases every
     // display object, even when it is destroyed before init() completes.
-    this.scene.addChild(this.terrain, this.shipLayer, this.projectileLayer, this.effects.root)
+    this.scene.addChild(this.terrain.root, this.shipLayer, this.projectileLayer, this.effects.root)
     this.app.stage.addChild(this.scene)
   }
 
@@ -69,7 +64,7 @@ export class PixiRenderer {
   async mount(host: HTMLElement): Promise<void> {
     await this.app.init({
       preference: 'webgl',
-      background: COLORS.letterbox,
+      background: LETTERBOX_COLOR,
       antialias: true,
       autoDensity: true,
       resolution: Math.min(window.devicePixelRatio, MAX_RESOLUTION),
@@ -85,7 +80,6 @@ export class PixiRenderer {
     }
 
     this.state = 'running'
-    this.drawTerrain()
     host.appendChild(this.app.canvas)
     this.resizeObserver = new ResizeObserver(() => this.fitToHost(host))
     this.resizeObserver.observe(host)
@@ -105,12 +99,18 @@ export class PixiRenderer {
   }
 
   render(world: World, alpha: number, events: readonly GameEvent[]): void {
-    // Simulation time, in steps: effects use it so they freeze during pauses.
+    // Simulation time, in steps: animations use it so they freeze during pauses.
     const now = world.step + alpha
     for (const event of events) {
       this.effects.handle(event, now)
       if (event.type === 'shipDamaged') {
         this.shipViews.get(event.shipId)?.flash(now)
+      } else if (event.type === 'shipDestroyed') {
+        const pose = this.shipViews.get(event.shipId)?.hullPose
+        if (pose) {
+          const wreck = this.textures.ships[event.kind].wreck
+          this.effects.sinkWreck(wreck, event.x, event.y, pose.rotation, pose.scale, now)
+        }
       }
     }
 
@@ -130,13 +130,14 @@ export class PixiRenderer {
     for (const projectile of world.projectiles) {
       this.syncProjectile(projectile, alpha)
     }
-    for (const [id, graphic] of this.projectileViews) {
+    for (const [id, view] of this.projectileViews) {
       if (!this.seenIds.has(id)) {
-        graphic.destroy()
+        view.destroy({ children: true })
         this.projectileViews.delete(id)
       }
     }
 
+    this.terrain.update(now)
     this.effects.update(now)
   }
 
@@ -155,7 +156,7 @@ export class PixiRenderer {
     this.seenIds.add(ship.id)
     let view = this.shipViews.get(ship.id)
     if (!view) {
-      view = new ShipView(ship)
+      view = new ShipView(ship, this.textures)
       this.shipViews.set(ship.id, view)
       this.shipLayer.addChild(view.root)
     }
@@ -164,50 +165,41 @@ export class PixiRenderer {
 
   private syncProjectile(projectile: Projectile, alpha: number): void {
     this.seenIds.add(projectile.id)
-    let graphic = this.projectileViews.get(projectile.id)
-    if (!graphic) {
-      graphic = new Graphics(this.projectileShapes[projectile.faction])
-      this.projectileViews.set(projectile.id, graphic)
-      this.projectileLayer.addChild(graphic)
+    let view = this.projectileViews.get(projectile.id)
+    if (!view) {
+      view = new Container({ rotation: Math.atan2(projectile.stepY, projectile.stepX) })
+      const ball = new Sprite({ texture: this.textures.cannonBall, anchor: 0.5 })
+      if (projectile.faction === 'enemy') {
+        ball.tint = ENEMY_SHOT_TINT
+      }
+      view.addChild(new Graphics(this.trailShape), ball)
+      this.projectileViews.set(projectile.id, view)
+      this.projectileLayer.addChild(view)
     }
-    graphic.position.set(
+    view.position.set(
       projectile.previousX + (projectile.x - projectile.previousX) * alpha,
       projectile.previousY + (projectile.y - projectile.previousY) * alpha,
     )
   }
 
   /**
-   * Views go first, then the geometry they share, then the application. A
-   * Graphics built on a shared context leaves the context alone when it is
-   * destroyed without options, so each shared context is destroyed once.
+   * Views go first, then the geometry they share, then the application.
+   * Textures belong to the shared asset cache and are never destroyed here.
    */
   private release(): void {
     for (const view of this.shipViews.values()) {
       view.destroy()
     }
     this.shipViews.clear()
-    for (const graphic of this.projectileViews.values()) {
-      graphic.destroy()
+    for (const view of this.projectileViews.values()) {
+      view.destroy({ children: true })
     }
     this.projectileViews.clear()
     this.effects.destroy()
-    this.projectileShapes.player.destroy()
-    this.projectileShapes.enemy.destroy()
-    // `context: true` is required: Graphics only free their own
-    // GraphicsContext when destroyed without options.
+    this.trailShape.destroy()
+    this.terrain.destroy()
+    // Everything left (layers and the scene) owns no shared resource.
     this.app.destroy({ removeView: true }, { children: true, context: true })
-  }
-
-  private drawTerrain(): void {
-    const { width, height, islands } = this.arena
-    const water = new Graphics().rect(0, 0, width, height).fill(COLORS.water)
-    const islandShapes = islands.map((island) =>
-      new Graphics()
-        .rect(island.x, island.y, island.width, island.height)
-        .fill(COLORS.sand)
-        .stroke({ width: 4, color: COLORS.shore }),
-    )
-    this.terrain.addChild(water, ...islandShapes)
   }
 
   /** Scales the logical arena uniformly and centers it inside the host. */
@@ -225,8 +217,4 @@ export class PixiRenderer {
       (height - this.arena.height * scale) / 2,
     )
   }
-}
-
-function projectileShape(color: number): GraphicsContext {
-  return new GraphicsContext().circle(0, 0, 4).fill(color).stroke({ width: 1.5, color: COLORS.outline })
 }

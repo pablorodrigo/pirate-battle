@@ -32,10 +32,27 @@
   display: block;
 }
 
-.message {
+.overlay {
   position: absolute;
   inset: 0;
   display: grid;
   place-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+  background: var(--color-sea-deep);
+}
+
+.overlay p {
   margin: 0;
+}
+
+.overlay progress {
+  width: min(16rem, 60vw);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
 }

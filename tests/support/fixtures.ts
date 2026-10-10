@@ -1,7 +1,12 @@
 import { test as base, expect } from '@playwright/test'
 
+type ConsoleGuard = {
+  /** Declares an error the test provokes on purpose, such as a blocked request. */
+  allow: (pattern: RegExp) => void
+}
+
 type Fixtures = {
-  consoleErrors: string[]
+  consoleErrors: ConsoleGuard
 }
 
 export const test = base.extend<Fixtures>({
@@ -10,6 +15,7 @@ export const test = base.extend<Fixtures>({
   consoleErrors: [
     async ({ page }, provide) => {
       const errors: string[] = []
+      const allowed: RegExp[] = []
       page.on('console', (message) => {
         if (message.type() === 'error') {
           errors.push(message.text())
@@ -18,8 +24,9 @@ export const test = base.extend<Fixtures>({
       page.on('pageerror', (error) => {
         errors.push(error.message)
       })
-      await provide(errors)
-      expect(errors, 'console errors').toEqual([])
+      await provide({ allow: (pattern) => allowed.push(pattern) })
+      const unexpected = errors.filter((error) => !allowed.some((pattern) => pattern.test(error)))
+      expect(unexpected, 'console errors').toEqual([])
     },
     { auto: true },
   ],
