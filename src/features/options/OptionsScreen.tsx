@@ -105,7 +105,7 @@ export function OptionsScreen({ onBack }: OptionsScreenProps) {
             <Button variant="secondary" onClick={restoreDefaults}>
               Restore defaults
             </Button>
-            <Button variant="secondary" onClick={onBack}>
+            <Button variant="secondary" sound="close" onClick={onBack}>
               Main Menu
             </Button>
           </div>

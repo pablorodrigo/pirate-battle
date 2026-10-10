@@ -37,7 +37,9 @@ export function MainMenu({ onPlay, onOptions }: MainMenuProps) {
         </p>
         <nav className={styles.actions} aria-label="Main menu">
           <Button onClick={onPlay}>Play</Button>
-          <Button onClick={onOptions}>Options</Button>
+          <Button sound="open" onClick={onOptions}>
+            Options
+          </Button>
         </nav>
         <ControlsGuide />
         <ApiStatus />

@@ -21,19 +21,22 @@ const VOLUME: Readonly<Record<SoundName, number>> = {
   matchWon: 0.8,
   matchLost: 0.8,
   ocean: 0.3,
+  sailing: 0.35,
 }
 const ENEMY_CANNON_VOLUME = 0.35
 /** The last seconds of the clock tick audibly. */
 const COUNTDOWN_SECONDS = 5
 
 /**
- * Turns one match into sound: combat from the events of each frame, and the
- * start, pauses, final countdown and low health from the HUD snapshot.
- * Presentation only: it never changes the match.
+ * Turns one match into sound: combat from the events of each frame, the
+ * start, pauses, final countdown and low health from the HUD snapshot, and
+ * the creak of the player's ship while it sails. Presentation only: it never
+ * changes the match.
  */
 export class MatchSounds {
   private readonly sounds: SoundPlayer
   private previous: HudSnapshot | null = null
+  private sailing = false
 
   constructor(sounds: SoundPlayer) {
     this.sounds = sounds
@@ -103,8 +106,23 @@ export class MatchSounds {
     }
   }
 
-  /** The match is over for this screen: silence its ambience. */
+  /** The sailing loop plays while the player's ship moves, and only while the match runs. */
+  handleSailing(moving: boolean): void {
+    const sailing = moving && this.previous?.status === 'running'
+    if (sailing === this.sailing) {
+      return
+    }
+    this.sailing = sailing
+    if (sailing) {
+      this.sounds.startLoop('sailing', VOLUME.sailing)
+    } else {
+      this.sounds.stopLoop('sailing')
+    }
+  }
+
+  /** The match is over for this screen: silence its loops. */
   dispose(): void {
+    this.sailing = false
     this.sounds.stopLoop()
   }
 
@@ -117,8 +135,10 @@ export class MatchSounds {
       this.sounds.startLoop('ocean', VOLUME.ocean)
     } else if (to === 'paused') {
       this.play('pause')
+      this.sailing = false
       this.sounds.stopLoop()
     } else if (to === 'finished' || to === 'abandoned') {
+      this.sailing = false
       this.sounds.stopLoop()
     }
   }

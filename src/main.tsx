@@ -7,6 +7,8 @@ import { createQueryClient } from './app/queryClient.ts'
 import { matchJournal } from './features/registration/matchJournal.ts'
 import { RegistrationCoordinator } from './features/registration/RegistrationCoordinator.ts'
 import { RegistrationProvider } from './features/registration/RegistrationProvider.tsx'
+import { soundBank } from './game/audio/SoundBank.ts'
+import { InterfaceSoundContext, type InterfaceSound } from './shared/ui/interfaceSound.ts'
 import { installUiSkin } from './shared/ui/uiSkin.ts'
 import './shared/styles/global.css'
 
@@ -42,12 +44,16 @@ const queryClient = createQueryClient()
 // Lives for the whole app: pending registrations keep going across screens and matches.
 const registration = new RegistrationCoordinator(queryClient, matchJournal)
 registration.start()
+// Menu buttons play their sounds through the game's sound bank, which honours the sound setting.
+const playInterfaceSound = (sound: InterfaceSound) => soundBank.playInterface(sound)
 
 createRoot(rootElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <RegistrationProvider coordinator={registration}>
-        <App />
+        <InterfaceSoundContext value={playInterfaceSound}>
+          <App />
+        </InterfaceSoundContext>
       </RegistrationProvider>
     </QueryClientProvider>
   </StrictMode>,

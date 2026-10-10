@@ -55,8 +55,11 @@ export function PauseDialog({ reason, onResume, onExit }: PauseDialogProps) {
       <p id="pause-reason">{REASON_TEXT[reason ?? 'manual']}</p>
       <div className={styles.actions}>
         {/* showModal() focuses the first button, so Resume gets focus. */}
-        <Button onClick={onResume}>Resume</Button>
-        <Button variant="secondary" onClick={onExit}>
+        {/* Resuming plays the match's own sound. */}
+        <Button sound={null} onClick={onResume}>
+          Resume
+        </Button>
+        <Button variant="secondary" sound="back" onClick={onExit}>
           Main Menu
         </Button>
       </div>

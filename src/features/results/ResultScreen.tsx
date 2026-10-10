@@ -86,7 +86,7 @@ export function ResultScreen({ match, onPlayAgain, onMainMenu }: ResultScreenPro
           </div>
           <div className={styles.actions}>
             <Button onClick={onPlayAgain}>Play Again</Button>
-            <Button variant="secondary" onClick={onMainMenu}>
+            <Button variant="secondary" sound="back" onClick={onMainMenu}>
               Main Menu
             </Button>
           </div>

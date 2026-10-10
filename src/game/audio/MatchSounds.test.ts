@@ -11,7 +11,7 @@ function recorder() {
     load: () => calls.push('load'),
     play: (name, volume) => calls.push(`play ${name} ${volume}`),
     startLoop: (name) => calls.push(`loop ${name}`),
-    stopLoop: () => calls.push('stop loop'),
+    stopLoop: (name) => calls.push(name ? `stop loop ${name}` : 'stop loop'),
   }
   return { sounds: new MatchSounds(player), calls }
 }
@@ -116,6 +116,27 @@ describe('MatchSounds', () => {
       sounds.handleHud({ ...READY, status: 'running', health })
     }
     expect(calls.filter((call) => call.startsWith('play healthLow'))).toEqual(['play healthLow 0.7'])
+  })
+
+  it('creaks while the ship sails, only while the match runs', () => {
+    const { sounds, calls } = recorder()
+    sounds.handleSailing(true)
+    sounds.handleHud({ ...READY, status: 'running' })
+    calls.length = 0
+
+    sounds.handleSailing(true)
+    sounds.handleSailing(true)
+    sounds.handleSailing(false)
+    sounds.handleSailing(true)
+    sounds.handleHud({ ...READY, status: 'paused', pauseReason: 'manual' })
+    sounds.handleSailing(true)
+    expect(calls).toEqual([
+      'loop sailing',
+      'stop loop sailing',
+      'loop sailing',
+      'play pause 0.6',
+      'stop loop',
+    ])
   })
 
   it('stops the ambience when the screen releases the match', () => {

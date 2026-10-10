@@ -58,7 +58,7 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
             <p>The game assets could not be loaded. Check your connection and try again.</p>
             <div className={styles.actions}>
               <Button onClick={retry}>Retry</Button>
-              <Button variant="secondary" onClick={onExit}>
+              <Button variant="secondary" sound="back" onClick={onExit}>
                 Main Menu
               </Button>
             </div>

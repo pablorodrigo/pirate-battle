@@ -153,9 +153,11 @@ In the landscape layout the HUD header draws no box (`display: contents`), so th
 
 ## Audio
 
-`SoundBank` plays the provided WAV files through one Web Audio context shared by every match, like the textures. Browsers only allow audio to start inside a user gesture, so the Play buttons unlock it, and so does resuming a match. Sound is never required: files load in the background once a match has started, and only while sound is on, so they never compete with the textures a match waits for. A sound that is not ready yet, or failed to load, is skipped; the first match may therefore start in silence.
+`SoundBank` plays the provided WAV files through one Web Audio context shared by every match, like the textures. Browsers only allow audio to start inside a user gesture, so the Play buttons unlock it, and so do resuming a match and every press of a menu button. Sound is never required: files load in two groups, each when first needed and only while sound is on: the menus' sounds (about 170 KB) at the first press of a button, and the match's once a match has started, so they never compete with the textures a match waits for. A sound that is not ready yet, or failed to load, is skipped; the first press and the first match may therefore be silent.
 
-`MatchSounds` turns one match into sound and never changes it. Combat comes from the events of each frame: cannons, broadsides, hits on wood or splashes, explosions, rams, the player's ship sinking and the points scored. Each sound plays at most once per frame, however many events ask for it, and enemy fire is quieter than the player's. The start, pauses, the last five seconds and the drop below a third of health come from the HUD snapshot. The ocean ambience loops while the match runs and stops when it pauses, ends or leaves the screen.
+`MatchSounds` turns one match into sound and never changes it. Combat comes from the events of each frame: cannons, broadsides, hits on wood or splashes, explosions, rams, the player's ship sinking and the points scored. Each sound plays at most once per frame, however many events ask for it, and enemy fire is quieter than the player's. The start, pauses, the last five seconds and the drop below a third of health come from the HUD snapshot. The ocean ambience loops while the match runs and stops when it pauses, ends or leaves the screen; the creak of the player's ship loops over it while the ship moves. Loops fade in and out over a quarter of a second, so they never start or stop with a click.
+
+Menu buttons sound when pressed: a click, or the pack's sounds for opening Options, closing it and going back to the main menu. The shared `Button` plays them through a React context that the app provides from the sound bank, so the shared UI never depends on the game. Resume plays the match's own sound instead, and the on-screen game controls stay silent.
 
 The setting is stored on its own, outside the match settings, and applies at once: Options saves it with the other settings, and the pause menu has the same switch. While sound is off, no sound file is downloaded.
 
@@ -256,6 +258,6 @@ Two front shots sink a Chaser and two sink a Shooter; a full broadside (45 damag
 
 - Only one tab should play at a time: two tabs share the journal and the mock database without coordination.
 - Service workers, and therefore the mock API, need a secure context: a phone on the local network must open the dev server through HTTPS (for example a Vercel preview) to reach the API. The game itself still runs.
-- The interface itself is silent: the pack's interface sounds and its sailing loop are not used.
+- Buttons have no hover sound: the pack's `ui_hover` would sound at every pointer move across the menus, and touch screens have no hover.
 - Number fields display decimals in the browser's own locale (for example `2,5`).
 - In containers without a GPU, WebGL runs in software, which is slower but renders identically for the visual baselines.

@@ -75,6 +75,8 @@ export function useGameRuntime(
           render: (world, alpha, events) => {
             view.render(world, alpha, events)
             matchSounds.handleEvents(events)
+            const { player } = world
+            matchSounds.handleSailing(player.x !== player.previousX || player.y !== player.previousY)
           },
         },
         onFinished: (result) => handleFinished(result),
