@@ -1,6 +1,6 @@
 # Test report
 
-Last full run: October 10, 2026, on commit `0c69ddc`.
+Last full run: October 10, 2026, on commit `f70dfd8`.
 
 ## Summary
 
@@ -10,7 +10,7 @@ Last full run: October 10, 2026, on commit `0c69ddc`.
 | Lint | `npm run lint` | Passed, no warnings | Passed, no warnings |
 | Unit tests | `npm run test:unit` | 97 passed in 19 files | 97 passed in 19 files |
 | Production build | `npm run build` | Passed | Passed |
-| End-to-end and visual tests | `npm run test:e2e` | 148 passed, 20 skipped, in 3.8 min | 148 passed, 20 skipped, in 7.5 min |
+| End-to-end and visual tests | `npm run test:e2e` | 154 passed, 20 skipped, in 4.5 min | 154 passed, 20 skipped, in 9.0 min |
 
 Twenty tests are skipped on purpose in every run. They are the ten touch tests (three touch-control tests and seven touch-layout tests) in the two projects without a touch screen, `desktop-chromium` and `dev-strict-mode`. `mobile-chromium` runs them.
 
@@ -24,7 +24,7 @@ Twenty tests are skipped on purpose in every run. They are the ten touch tests (
 | Workers | 4 | 2 |
 | Visual baselines | `*-darwin.png` | `*-linux.png` |
 
-The Linux run uses the image, architecture and commands of the CI workflow (`.github/workflows/ci.yml`), with `CI=true`. Dependencies come from a clean `npm ci`, `test.only` fails the run and the servers are always started fresh. Each test gets 60 s and each assertion 10 s, because WebGL runs in software without a GPU (30 s and 5 s locally).
+The Linux run uses the image, architecture and commands of the CI workflow (`.github/workflows/ci.yml`), with `CI=true`. Dependencies come from a clean `npm ci`, `test.only` fails the run and the servers are always started fresh. Each test gets 60 s and each assertion 10 s, because WebGL runs in software without a GPU (30 s and 5 s locally). Waiting for a match to load allows 30 s everywhere.
 
 ## HTML report and traces
 
@@ -37,9 +37,9 @@ The Linux run uses the image, architecture and commands of the CI workflow (`.gi
 
 | Project | Target | Tests |
 | --- | --- | ---: |
-| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 57 (54 end-to-end, 3 visual) |
-| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 57 (54 end-to-end, 3 visual) |
-| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 54 (end-to-end only) |
+| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 59 (56 end-to-end, 3 visual) |
+| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 59 (56 end-to-end, 3 visual) |
+| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 56 (end-to-end only) |
 
 Every test starts from a fresh browser context. Matches use fixed seeds and, where timing matters, a manual clock that advances whole simulation steps; tests act through real key presses or, on touch, held fingers sent through the Chrome DevTools Protocol, and check the effects. Any console error or uncaught exception fails a test unless that test expects it.
 
@@ -62,6 +62,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | — | Visual regression of the menu, the arena in a stable state and the result screen | `visual/screens.spec.ts` |
 | — | Sound effects: the setting, and files that load only once a match starts and only while sound is on | `audio.spec.ts`, `options.spec.ts` |
 | — | Touch layout in both orientations, nothing over the arena; no text selection or page zoom | `touch-layout.spec.ts`, `touch.spec.ts`, `smoke.spec.ts` |
+| — | How to play explains the controls of the device in use; the menu title is centred | `smoke.spec.ts`, `visual/screens.spec.ts` |
 
 ## Unit tests
 
@@ -83,6 +84,11 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | Profiling | Memory held after leaving a match | PixiJS's batch pool kept the baked terrain canvases; a closure kept the first game screen. See [PROFILING.md](PROFILING.md). | `b37b207`, `a8deeaa` |
 | A manual test of the published build on an iPhone | In landscape the arena filled about a third of the screen. In portrait it was squeezed to a sliver once the match resumed. Dragging a finger selected text. | A HUD row and two wide control columns took the space, portrait had no layout of its own, and only the controls disabled selection. | `7c93ab9`, `7acd130`, `389de04`; `touch-layout.spec.ts` now checks seven phone screens. |
 | The Linux run in the CI image | Two `mobile-chromium` tests timed out: `pause.spec.ts` › "pauses from the keyboard…" and `options.spec.ts` › "turns sound effects off…". The traces show every step completing, each one taking seconds. | The larger landscape arena means more pixels drawn and composited in software, at the Pixel 7's density, because CI has no GPU. The mobile project's shared tests ran 81% longer than before; desktop was unchanged. A measurement of the game screen found no layout or script work repeated every frame. | In CI only, `playwright.config.ts` allows 60 s per test and 10 s per assertion. The checks are unchanged. |
+| A second manual test on an iPhone | The menu title sat off-centre on every screen, and How to play listed keyboard keys on a phone. | The title's heading took the image's natural width (384 px) while the image was drawn at 320 px against its left edge, and the guide ignored the device. | `42e6e18`, with E2E checks for both. |
+| Updating the menu baseline | The new mobile baseline showed keyboard keys while the page showed the touch guide. | Chromium's full-page capture briefly drops touch emulation, and the menu re-rendered for a keyboard. | `42e6e18`: the menu is captured with a viewport grown to the page's height. |
+| A local run | All 20 `dev-strict-mode` tests that start a match failed with "No match is running". | Locally, Playwright reuses a server already on its ports, and a developer's `npm run dev`, which has no test bridge, had taken port 5174, the port Vite picks when 5173 is busy. | `7947944`: the test servers use ports 4180 and 5180. |
+| The first local run after that change | `leaderboards.spec.ts` › "shows a loading state on a slow network" failed once on `dev-strict-mode`, then passed 15 times in a row. | Not confirmed. It was the first start of the dev server on its new port, while Vite was optimizing its dependencies again. | None needed so far; the next full runs passed. |
+| A slower run in the CI image (11.3 min) | Two `mobile-chromium` tests never saw their match load: "Loading the fleet…" outlasted the 10 s assertion timeout. | Loading decodes the textures and starts WebGL, the step that varies most between machines and is slowest without a GPU. | `f70dfd8`: every test waits for a match through `expectGameReady`, which allows 30 s for loading. |
 | A local run | `touch.spec.ts` › "turns with the on-screen buttons" failed once under parallel load, then passed in 30 repeated runs. | Not confirmed, because that run kept no trace. The touch tests ran simulation steps right after sending a touch through the Chrome DevTools Protocol, without waiting for the press to register. | `892c140`: each step waits until the button shows the press or the release. |
 
 ## Reproducing
