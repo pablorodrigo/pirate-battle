@@ -24,15 +24,17 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${DEV_PORT}` },
     },
   ],
+  // Both servers use the e2e mode, which adds the test bridge; the public
+  // build never includes it.
   webServer: [
     {
-      command: `npm run build && npm run preview -- --port ${PREVIEW_PORT} --strictPort`,
+      command: `npm run build:e2e && npx vite preview --outDir dist-e2e --port ${PREVIEW_PORT} --strictPort`,
       url: `http://localhost:${PREVIEW_PORT}`,
       reuseExistingServer: !isCI,
       timeout: 120_000,
     },
     {
-      command: `npm run dev -- --port ${DEV_PORT} --strictPort`,
+      command: `npx vite --mode e2e --port ${DEV_PORT} --strictPort`,
       url: `http://localhost:${DEV_PORT}`,
       reuseExistingServer: !isCI,
       timeout: 120_000,

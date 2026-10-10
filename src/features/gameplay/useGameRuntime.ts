@@ -4,6 +4,8 @@ import { createMatchConfig, type MatchSettings } from '../../game/config/matchSe
 import { GameSession, type MatchResult } from '../../game/core/GameSession.ts'
 import { PixiRenderer } from '../../game/rendering/PixiRenderer.ts'
 import { createSeed, GameRuntime } from '../../game/runtime/GameRuntime.ts'
+import { applyScenario } from '../../game/runtime/scenario.ts'
+import { testHooks } from '../../game/runtime/testHooks.ts'
 
 export type GameRuntimeState =
   | { readonly status: 'loading' }
@@ -28,12 +30,19 @@ export function useGameRuntime(
     if (!host) {
       return
     }
-    const session = new GameSession(createMatchConfig(settings), defaultArena, createSeed())
+    const hooks = testHooks.current
+    const scenario = hooks?.scenario() ?? {}
+    const config = createMatchConfig(settings)
+    const session = new GameSession(config, defaultArena, scenario.seed ?? createSeed(), {
+      spawnsEnabled: scenario.spawns ?? true,
+    })
+    applyScenario(session, scenario, config)
     const renderer = new PixiRenderer(defaultArena)
     const runtime = new GameRuntime({
       session,
       view: renderer,
       onFinished: (result) => handleFinished(result),
+      manualClock: scenario.manualClock ?? false,
     })
     let active = true
 
@@ -41,6 +50,7 @@ export function useGameRuntime(
       () => {
         if (active) {
           runtime.start()
+          hooks?.attach(runtime)
           setState({ status: 'ready', runtime, rendererName: renderer.rendererName })
         }
       },
@@ -54,6 +64,7 @@ export function useGameRuntime(
 
     return () => {
       active = false
+      hooks?.detach(runtime)
       runtime.dispose()
       renderer.destroy()
     }

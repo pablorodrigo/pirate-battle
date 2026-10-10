@@ -33,6 +33,11 @@ export type MatchResult = {
 /** Clearance used to plan routes: the largest enemy radius plus a small margin. */
 const NAVIGATION_MARGIN = 2
 
+export type SessionOptions = {
+  /** Disabled only by test scenarios that place every enemy themselves. */
+  readonly spawnsEnabled?: boolean
+}
+
 /**
  * One match: the rules state machine around a World. It only advances while
  * running, one fixed step at a time, so the outcome never depends on the
@@ -46,10 +51,11 @@ export class GameSession {
   readonly durationSteps: number
   private readonly navigation: NavigationGrid
   private readonly spawner: Spawner
+  private readonly spawnsEnabled: boolean
   private readonly repathSteps: number
   private currentStatus: SessionStatus = { kind: 'ready' }
 
-  constructor(config: GameplayConfig, arena: ArenaDefinition, seed: number) {
+  constructor(config: GameplayConfig, arena: ArenaDefinition, seed: number, options: SessionOptions = {}) {
     this.config = config
     this.seed = seed
     this.world = new World(config, arena)
@@ -60,6 +66,7 @@ export class GameSession {
     this.navigation = new NavigationGrid(arena, config.navigation.cellSize, clearance)
     this.navigation.setTarget(this.world.player.x, this.world.player.y)
     this.spawner = new Spawner(config, new SeededRandom(seed))
+    this.spawnsEnabled = options.spawnsEnabled ?? true
   }
 
   get status(): SessionStatus {
@@ -157,7 +164,9 @@ export class GameSession {
     if (!isLastStep) {
       firePlayerCannons(world, input, config)
       fireShooterCannons(world, config)
-      this.spawner.update(world, this.navigation)
+      if (this.spawnsEnabled) {
+        this.spawner.update(world, this.navigation)
+      }
     }
 
     world.step += 1

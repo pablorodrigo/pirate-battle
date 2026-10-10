@@ -27,6 +27,8 @@ export type GameRuntimeOptions = {
   readonly session: GameSession
   readonly view: MatchView
   readonly onFinished: (result: MatchResult) => void
+  /** Test builds only: steps come from advanceSteps(), never from frame time. */
+  readonly manualClock?: boolean
 }
 
 /**
@@ -39,6 +41,7 @@ export class GameRuntime {
   private readonly session: GameSession
   private readonly view: MatchView
   private readonly onFinished: (result: MatchResult) => void
+  private readonly manualClock: boolean
   private readonly loop: FixedStepLoop
   private readonly keyboard: KeyboardInput
   private readonly listeners = new Set<() => void>()
@@ -51,6 +54,7 @@ export class GameRuntime {
     this.session = options.session
     this.view = options.view
     this.onFinished = options.onFinished
+    this.manualClock = options.manualClock ?? false
     this.loop = new FixedStepLoop({
       stepsPerSecond: options.session.config.stepsPerSecond,
       maxFrameMs: 250,
@@ -66,6 +70,10 @@ export class GameRuntime {
 
   get world(): World {
     return this.session.world
+  }
+
+  get status(): SessionStatus {
+    return this.session.status
   }
 
   start(): void {
@@ -109,6 +117,15 @@ export class GameRuntime {
     this.listeners.clear()
   }
 
+  /** Runs whole simulation steps on demand, with the live input. Used by the test bridge. */
+  advanceSteps(count: number): void {
+    const { session } = this
+    for (let i = 0; i < count && session.status.kind === 'running'; i += 1) {
+      session.step(this.input.snapshot())
+    }
+    this.present(1)
+  }
+
   readonly subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener)
     return () => {
@@ -129,6 +146,10 @@ export class GameRuntime {
 
   private readonly onFrame = (elapsedMs: number): void => {
     const { session } = this
+    if (this.manualClock) {
+      this.present(1)
+      return
+    }
     // Paused time never reaches the loop: frames only feed it while running.
     if (session.status.kind === 'running') {
       const steps = this.loop.advance(elapsedMs)
@@ -137,9 +158,14 @@ export class GameRuntime {
         session.step(input)
       }
     }
-    this.view.render(session.world, this.loop.alpha, session.drainEvents())
-    this.publishHud()
+    this.present(this.loop.alpha)
+  }
 
+  /** Draws the latest state, refreshes the HUD and reports the end of the match once. */
+  private present(alpha: number): void {
+    const { session } = this
+    this.view.render(session.world, alpha, session.drainEvents())
+    this.publishHud()
     const result = session.result
     if (result && !this.finishReported) {
       this.finishReported = true

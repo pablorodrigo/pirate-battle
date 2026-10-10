@@ -11,6 +11,12 @@ if (!rootElement) {
   throw new Error('Missing #root element in index.html')
 }
 
+// Only the e2e build defines this flag, so the public bundle drops the bridge.
+if (import.meta.env.VITE_ENABLE_TEST_BRIDGE === 'true') {
+  const { installTestBridge } = await import('./testing/installTestBridge.ts')
+  installTestBridge()
+}
+
 // The game must stay playable without the API, so a failed mock start is
 // reported and the app renders anyway.
 try {

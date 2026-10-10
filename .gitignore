@@ -10,12 +10,14 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-e2e
 *.local
 
 # Environment overrides (.env.example documents the variables)
 .env
 .env.*
 !.env.example
+!.env.e2e
 
 # Playwright
 /test-results/
