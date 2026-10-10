@@ -1,6 +1,7 @@
 import { NETWORK_CHANGED_EVENT } from '../shared/api/networkEvents.ts'
 import { parseRegisteredMatch } from '../shared/contracts/matches.ts'
 import { readStored, writeStored } from '../shared/storage/localStore.ts'
+import type { FixtureCaptain } from './fixtures.ts'
 import { MatchRepository, type MatchStore, type StoredDatabase } from './MatchRepository.ts'
 import { isNetworkScenario, NETWORK_SCENARIOS, type NetworkScenario } from './networkScenarios.ts'
 
@@ -59,11 +60,12 @@ class MockServer {
     return this.requestCount
   }
 
-  selectScenario(scenario: NetworkScenario): void {
+  /** `owner` is the local captain, whom a data preset may give matches of their own. */
+  selectScenario(scenario: NetworkScenario, owner?: FixtureCaptain): void {
     const preset = NETWORK_SCENARIOS[scenario].preset
     if (preset) {
       this.generation += 1
-      this.repository.reset(preset)
+      this.repository.reset(preset, owner)
     }
     this.currentScenario = scenario
     this.requestCount = 0

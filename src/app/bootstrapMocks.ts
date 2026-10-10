@@ -1,3 +1,5 @@
+import { getPlayer } from '../features/player/playerIdentity.ts'
+
 /**
  * Starts the MSW worker that serves the API. The published demo relies on
  * these mocks, so they stay enabled unless VITE_ENABLE_MOCKS is "false".
@@ -14,7 +16,7 @@ export async function startMockApi(): Promise<void> {
   ])
   const requested = new URLSearchParams(window.location.search).get('scenario')
   if (isNetworkScenario(requested)) {
-    mockServer.selectScenario(requested)
+    mockServer.selectScenario(requested, getPlayer())
   }
   await worker.start({
     serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },

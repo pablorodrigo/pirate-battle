@@ -89,7 +89,7 @@ The ranking and history API is mocked with MSW, in development, in the tests and
 | --- | --- |
 | `success` | Every request succeeds after a short delay. Data is kept. |
 | `empty` | Starts with no matches at all (replaces the demo data). |
-| `paginated` | Loads enough matches for several pages (replaces the demo data). |
+| `paginated` | Loads enough matches for several pages of the ranking and of your own history (replaces the demo data). |
 | `slow` | Every response takes about half the request timeout. |
 | `variable-latency` | Each response waits a seeded, reproducible delay between 5% and 90% of the timeout. |
 | `out-of-order` | Every other read is slow and answers with the data from when it was sent, after newer reads. |

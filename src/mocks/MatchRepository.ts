@@ -7,7 +7,7 @@ import {
   type RankingEntry,
   type RegisteredMatch,
 } from '../shared/contracts/matches.ts'
-import { fixtureMatches, type FixturePreset } from './fixtures.ts'
+import { type FixtureCaptain, fixtureMatches, type FixturePreset } from './fixtures.ts'
 
 export type StoredDatabase = {
   /** Grows with every write, so readers can tell older answers from newer ones. */
@@ -38,8 +38,8 @@ export class MatchRepository {
   }
 
   /** Restores the fixtures of a preset, dropping every registered match. */
-  reset(preset: FixturePreset): void {
-    this.store.save({ revision: 1, matches: fixtureMatches(preset) })
+  reset(preset: FixturePreset, owner?: FixtureCaptain): void {
+    this.store.save({ revision: 1, matches: fixtureMatches(preset, owner) })
   }
 
   register(match: CompletedMatch, now: Date): RegisterOutcome {

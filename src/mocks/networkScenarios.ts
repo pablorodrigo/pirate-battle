@@ -26,7 +26,11 @@ export type ScenarioDefinition = {
 export const NETWORK_SCENARIOS: Readonly<Record<NetworkScenario, ScenarioDefinition>> = {
   success: { label: 'Success', description: 'Every request succeeds after a short delay. Data is kept.' },
   empty: { label: 'Empty lists', description: 'Starts with no matches at all.', preset: 'empty' },
-  paginated: { label: 'Many pages', description: 'Loads enough matches for several pages.', preset: 'paginated' },
+  paginated: {
+    label: 'Many pages',
+    description: 'Loads enough matches for several pages of the ranking and of your history.',
+    preset: 'paginated',
+  },
   slow: { label: 'Slow network', description: 'Every response takes about half the request timeout.' },
   'variable-latency': {
     label: 'Variable latency',

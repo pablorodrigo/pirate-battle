@@ -19,16 +19,19 @@ function rulesetIdOf(config: MatchConfigSnapshot): string {
   return `r${config.rulesVersion}-d${config.matchDurationSeconds}-s${config.spawnIntervalSeconds}`
 }
 
+/** The local captain, whom the paginated preset gives a history of several pages. */
+export type FixtureCaptain = { readonly id: string; readonly name: string }
+
 /** Deterministic fixture match: the same index always produces the same record. */
-function fixtureMatch(index: number, config: MatchConfigSnapshot): RegisteredMatch {
-  const captain = CAPTAINS[index % CAPTAINS.length] ?? CAPTAINS[0]
+function fixtureMatch(index: number, config: MatchConfigSnapshot, owner?: FixtureCaptain): RegisteredMatch {
+  const [playerId, playerName] = owner ? [owner.id, owner.name] : (CAPTAINS[index % CAPTAINS.length] ?? CAPTAINS[0])
   const fullDurationMs = config.matchDurationSeconds * 1000
   const survived = index % 3 !== 0
   const completedAt = new Date(Date.UTC(2026, 8, 1 + (index % 28), 9 + (index % 11), (index * 7) % 60)).toISOString()
   const match: CompletedMatch = {
-    matchId: `fixture-${rulesetIdOf(config)}-${String(index).padStart(3, '0')}`,
-    playerId: captain[0],
-    playerName: captain[1],
+    matchId: `fixture-${rulesetIdOf(config)}-${owner ? 'own-' : ''}${String(index).padStart(3, '0')}`,
+    playerId,
+    playerName,
     completedAt,
     score: (index * 7 + 3) % 23,
     durationMs: survived ? fullDurationMs : Math.round(fullDurationMs * (0.35 + (index % 5) * 0.1)),
@@ -39,19 +42,23 @@ function fixtureMatch(index: number, config: MatchConfigSnapshot): RegisteredMat
   return { ...match, registeredAt: completedAt }
 }
 
-function range(count: number, config: MatchConfigSnapshot): RegisteredMatch[] {
-  return Array.from({ length: count }, (_, index) => fixtureMatch(index, config))
+function range(count: number, config: MatchConfigSnapshot, owner?: FixtureCaptain): RegisteredMatch[] {
+  return Array.from({ length: count }, (_, index) => fixtureMatch(index, config, owner))
 }
 
 export type FixturePreset = 'default' | 'empty' | 'paginated'
 
-/** Matches of other players that seed the mock database. */
-export function fixtureMatches(preset: FixturePreset): RegisteredMatch[] {
+/**
+ * Matches that seed the mock database: other players', plus, in the paginated
+ * preset, enough of the local captain's for several pages of history. Those
+ * use the quick ruleset, so the default ranking keeps its five pages.
+ */
+export function fixtureMatches(preset: FixturePreset, owner?: FixtureCaptain): RegisteredMatch[] {
   switch (preset) {
     case 'empty':
       return []
     case 'paginated':
-      return [...range(46, DEFAULT_CONFIG), ...range(12, QUICK_CONFIG)]
+      return [...range(46, DEFAULT_CONFIG), ...range(12, QUICK_CONFIG), ...(owner ? range(23, QUICK_CONFIG, owner) : [])]
     case 'default':
       return [...range(8, DEFAULT_CONFIG), ...range(4, QUICK_CONFIG)]
   }

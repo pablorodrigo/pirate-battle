@@ -5,6 +5,7 @@ import { isNetworkScenario, NETWORK_SCENARIOS, type NetworkScenario } from '../.
 import { revisionGuard } from '../../shared/api/revisionGuard.ts'
 import { Button } from '../../shared/ui/Button.tsx'
 import { matchQueryKeys } from '../leaderboards/queries.ts'
+import { getPlayer } from '../player/playerIdentity.ts'
 import { matchJournal } from '../registration/matchJournal.ts'
 import { useRegistration } from '../registration/registrationContext.ts'
 import styles from './NetworkScenariosPanel.module.css'
@@ -26,7 +27,7 @@ export function NetworkScenariosPanel() {
   function select(next: NetworkScenario): void {
     // A data scenario restarts the server's revisions; every list reloads under the new behavior.
     revisionGuard.reset()
-    mockServer.selectScenario(next)
+    mockServer.selectScenario(next, getPlayer())
     void queryClient.invalidateQueries({ queryKey: matchQueryKeys.ranking })
     void queryClient.invalidateQueries({ queryKey: matchQueryKeys.history })
   }
