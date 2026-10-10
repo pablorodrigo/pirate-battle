@@ -143,7 +143,7 @@ In the landscape layout the HUD header draws no box (`display: contents`), so th
 
 **Views.** The renderer keeps one view per entity id, creates views for new entities, interpolates their pose between the last two simulated steps, and destroys the views of removed entities. A ship's sprite follows its health (intact above two thirds, damaged above one third, then critical with flames), flashes red when hit and carries a level health bar. Cannonballs have short trails.
 
-**Effects.** Muzzle flashes, impacts, splashes, explosions and sinking wrecks react to the events of each step and run on simulation time, so they freeze while the match is paused and look the same for the same match.
+**Effects.** Muzzle flashes, impacts, splashes, explosions, sinking wrecks and the two or three sailors who leap overboard from a destroyed ship, spinning, and splash into the water react to the events of each step and run on simulation time, so they freeze while the match is paused and look the same for the same match: the sailors' leaps are seeded by the ship's id.
 
 **Disposal order.** Views are destroyed first, then the shared geometry of trails and splashes, then the terrain's baked textures, then the application with `{ removeView: true }` and `{ children: true, context: true }`. Baked canvases are emptied as their textures are destroyed, because PixiJS's global pool of draw batches may still reference those textures until a later match reuses the batches. In PixiJS 8 a `Graphics` frees its own context only when destroyed without options or with `context: true`, and leaves a shared context alone when destroyed without options, so each context is destroyed exactly once.
 

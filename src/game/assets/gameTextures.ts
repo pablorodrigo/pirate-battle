@@ -23,6 +23,8 @@ export type GameTextures = {
   /** Large, medium and small explosion. */
   readonly explosions: readonly [Texture, Texture, Texture]
   readonly flames: readonly [Texture, Texture]
+  /** Sailors who jump overboard when their ship goes down. */
+  readonly crew: readonly Texture[]
   /**
    * Draws tiles onto a new canvas texture at whole-unit positions. Static
    * scenery is baked this way so neighbouring atlas texels never bleed into
@@ -127,6 +129,7 @@ function createGameTextures(
     cannonBall: fromAtlas('cannon_ball'),
     explosions: [fromAtlas('explosion_1'), fromAtlas('explosion_2'), fromAtlas('explosion_3')],
     flames: [fromAtlas('fire_1'), fromAtlas('fire_2')],
+    crew: [1, 2, 3, 4, 5, 6].map((index) => fromAtlas(`crew_${index}`)),
     bakeTiles: (width, height, placements, options) =>
       bakeTiles(tileSheet.source, width, height, placements, options?.tiling ?? false),
   }
