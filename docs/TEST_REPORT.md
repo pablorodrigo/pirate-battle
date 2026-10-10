@@ -1,6 +1,6 @@
 # Test report
 
-Last full run: October 10, 2026, on commit `f70dfd8`.
+Last full run: October 10, 2026, on commit `0efafdc`.
 
 ## Summary
 
@@ -8,9 +8,9 @@ Last full run: October 10, 2026, on commit `f70dfd8`.
 | --- | --- | --- | --- |
 | Type checking | `npm run typecheck` | Passed | Passed |
 | Lint | `npm run lint` | Passed, no warnings | Passed, no warnings |
-| Unit tests | `npm run test:unit` | 97 passed in 19 files | 97 passed in 19 files |
+| Unit tests | `npm run test:unit` | 99 passed in 20 files | 99 passed in 20 files |
 | Production build | `npm run build` | Passed | Passed |
-| End-to-end and visual tests | `npm run test:e2e` | 154 passed, 20 skipped, in 4.5 min | 154 passed, 20 skipped, in 9.0 min |
+| End-to-end and visual tests | `npm run test:e2e` | 163 passed, 20 skipped, in 4.2 min | 163 passed, 20 skipped, in 9.7 min |
 
 Twenty tests are skipped on purpose in every run. They are the ten touch tests (three touch-control tests and seven touch-layout tests) in the two projects without a touch screen, `desktop-chromium` and `dev-strict-mode`. `mobile-chromium` runs them.
 
@@ -37,9 +37,9 @@ The Linux run uses the image, architecture and commands of the CI workflow (`.gi
 
 | Project | Target | Tests |
 | --- | --- | ---: |
-| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 59 (56 end-to-end, 3 visual) |
-| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 59 (56 end-to-end, 3 visual) |
-| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 56 (end-to-end only) |
+| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 62 (59 end-to-end, 3 visual) |
+| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 62 (59 end-to-end, 3 visual) |
+| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 59 (end-to-end only) |
 
 Every test starts from a fresh browser context. Matches use fixed seeds and, where timing matters, a manual clock that advances whole simulation steps; tests act through real key presses or, on touch, held fingers sent through the Chrome DevTools Protocol, and check the effects. Any console error or uncaught exception fails a test unless that test expects it.
 
@@ -53,10 +53,10 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | 4 | Front and side cannons, damage, cooldowns and score without duplicates | `combat.spec.ts` |
 | 5 | Chaser and Shooter behavior and the spawn interval | `combat.spec.ts` |
 | 6 | Ending by time and by death, the simulation stopping and a clean restart | `match-flow.spec.ts` |
-| 7 | Pause, loss of focus and resuming without the clock advancing | `pause.spec.ts`, `match-flow.spec.ts`, `touch.spec.ts` |
+| 7 | Pause, loss of focus, a hidden tab and resuming without the clock advancing | `pause.spec.ts`, `match-flow.spec.ts`, `touch.spec.ts` |
 | 8 | The result and its persistence after a reload | `registration.spec.ts` |
 | 9 | Abandoning a match, repeated navigation between screens and touch controls | `match-flow.spec.ts`, `smoke.spec.ts`, `touch.spec.ts`, `touch-layout.spec.ts` |
-| 10 | Ranking and Match History: queries, pages, loading, empty and error states | `leaderboards.spec.ts`, `network-scenarios.spec.ts` |
+| 10 | Ranking and Match History: queries, pages, loading, empty and error states, each in both tabs | `leaderboards.spec.ts`, `network-scenarios.spec.ts` |
 | 11 | Registering a match, both tabs updating, and recovering a pending registration after a reload | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | 12 | Resending after a timeout without duplicates; late responses never replacing newer data | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | — | Visual regression of the menu, the arena in a stable state and the result screen | `visual/screens.spec.ts` |
@@ -73,7 +73,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | Fixed-step loop and input merging | `src/game/runtime/**`, `src/game/input/**` | 8 |
 | Match sounds: which sound each event and change of the match plays | `src/game/audio/**` | 8 |
 | Ship atlas parser | `src/game/assets/**` | 3 |
-| Mock database, revision guard, settings and the registration outbox | `src/mocks/**`, `src/shared/api/**`, `src/features/**` | 17 |
+| Mock database and its fixtures, revision guard, settings and the registration outbox | `src/mocks/**`, `src/shared/api/**`, `src/features/**` | 19 |
 | Screen navigation | `src/app/**` | 4 |
 
 ## Failures found by testing
@@ -87,7 +87,8 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | A second manual test on an iPhone | The menu title sat off-centre on every screen, and How to play listed keyboard keys on a phone. | The title's heading took the image's natural width (384 px) while the image was drawn at 320 px against its left edge, and the guide ignored the device. | `42e6e18`, with E2E checks for both. |
 | Updating the menu baseline | The new mobile baseline showed keyboard keys while the page showed the touch guide. | Chromium's full-page capture briefly drops touch emulation, and the menu re-rendered for a keyboard. | `42e6e18`: the menu is captured with a viewport grown to the page's height. |
 | A local run | All 20 `dev-strict-mode` tests that start a match failed with "No match is running". | Locally, Playwright reuses a server already on its ports, and a developer's `npm run dev`, which has no test bridge, had taken port 5174, the port Vite picks when 5173 is busy. | `7947944`: the test servers use ports 4180 and 5180. |
-| The first local run after that change | `leaderboards.spec.ts` › "shows a loading state on a slow network" failed once on `dev-strict-mode`, then passed 15 times in a row. | Not confirmed. It was the first start of the dev server on its new port, while Vite was optimizing its dependencies again. | None needed so far; the next full runs passed. |
+| Checking the challenge statement again | Match History had no end-to-end checks for pages, loading or errors, and no demo data gave it more than one page. The hidden-tab pause had no test. | The paginated scenario seeded other captains only, and the tests covered those states on the Ranking tab. | `bf64b25` and `0efafdc`: the paginated scenario gives the local captain three pages of history, with new tests for history pages, loading and errors and for the hidden-tab pause. |
+| Two local runs | `leaderboards.spec.ts` › "shows a loading state on a slow network" failed on `dev-strict-mode`: the ranking had already loaded when the check began. | The test waited for the page's load event, which also waits for the menu's images. On the dev server that wait can outlast the slow scenario's answer of about one second. | `0efafdc`: the test starts watching as soon as the page commits; it then passed 30 times in a row. |
 | A slower run in the CI image (11.3 min) | Two `mobile-chromium` tests never saw their match load: "Loading the fleet…" outlasted the 10 s assertion timeout. | Loading decodes the textures and starts WebGL, the step that varies most between machines and is slowest without a GPU. | `f70dfd8`: every test waits for a match through `expectGameReady`, which allows 30 s for loading. |
 | A local run | `touch.spec.ts` › "turns with the on-screen buttons" failed once under parallel load, then passed in 30 repeated runs. | Not confirmed, because that run kept no trace. The touch tests ran simulation steps right after sending a touch through the Chrome DevTools Protocol, without waiting for the press to register. | `892c140`: each step waits until the button shows the press or the release. |
 
