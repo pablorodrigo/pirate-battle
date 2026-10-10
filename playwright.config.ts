@@ -5,7 +5,7 @@ const DEV_PORT = 5174
 const isCI = Boolean(process.env.CI)
 
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: './tests',
   fullyParallel: true,
   forbidOnly: isCI,
   reporter: [['list'], ['html', { open: 'never' }]],
@@ -17,6 +17,10 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
+  expect: {
+    // Baselines are versioned per platform; a small ratio absorbs GPU anti-aliasing noise.
+    toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' },
+  },
   projects: [
     { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-chromium', use: { ...devices['Pixel 7 landscape'] } },
@@ -25,6 +29,7 @@ export default defineConfig({
     {
       name: 'dev-strict-mode',
       use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${DEV_PORT}` },
+      grepInvert: /@visual/,
     },
   ],
   // Both servers use the e2e mode, which adds the test bridge; the public
