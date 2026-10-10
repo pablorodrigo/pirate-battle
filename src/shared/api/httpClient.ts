@@ -1,8 +1,8 @@
 import axios from 'axios'
-import { API_BASE_URL } from './apiBaseUrl.ts'
+import { API_BASE_URL, API_TIMEOUT_MS } from './apiConfig.ts'
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 8_000,
+  timeout: API_TIMEOUT_MS,
   headers: { Accept: 'application/json' },
 })

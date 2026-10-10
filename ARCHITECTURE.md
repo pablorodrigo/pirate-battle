@@ -25,7 +25,7 @@ keyboard ─► InputManager ─► GameRuntime ─► GameSession (rules, fixed
 | Other `game/` modules (`runtime`, `input`, `rendering`) | PixiJS, `game/core`, `game/config`, each other | React, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api` |
 | `shared/contracts` | Other contracts, `game/config` | React, PixiJS, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api`, game rendering and runtime |
 | `shared/api` | Axios, `shared/contracts` | React, PixiJS, MSW, TanStack Query, `app`, `features`, `game`, `mocks` |
-| `mocks` | MSW, `shared/contracts`, `shared/api/apiBaseUrl` | React, PixiJS, Axios, TanStack Query, `app`, `features` |
+| `mocks` | MSW, `shared/contracts`, `shared/storage`, `shared/api/apiConfig` | React, PixiJS, Axios, TanStack Query, `app`, `features` |
 | `app`, `features` | Any module above | — |
 
 `.oxlintrc.json` enforces the table with `no-restricted-imports` overrides, so `npm run lint` fails when an import crosses a boundary.
