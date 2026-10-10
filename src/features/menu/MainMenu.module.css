@@ -1,10 +1,13 @@
 .menu {
   display: grid;
   justify-items: center;
-  align-content: center;
+  align-content: start;
   gap: 1.5rem;
   min-height: 100%;
-  padding: 1rem;
+  padding: 1.5rem 1rem;
+}
+
+.header {
   text-align: center;
 }
 
@@ -12,6 +15,25 @@
   margin: 0;
   font-size: clamp(2rem, 6vw, 3.5rem);
   letter-spacing: 0.04em;
+}
+
+.captain {
+  margin: 0.25rem 0 0;
+  opacity: 0.85;
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: start;
+  gap: 2rem;
+}
+
+.column {
+  display: grid;
+  justify-items: center;
+  gap: 1.5rem;
 }
 
 .actions {

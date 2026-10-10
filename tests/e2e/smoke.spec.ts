@@ -10,7 +10,7 @@ test('opens on the main menu', async ({ page }) => {
 test('reaches the mock API through Axios and TanStack Query', async ({ page }) => {
   await page.goto('/')
 
-  await expect(page.getByRole('status')).toHaveText('Mock API: online')
+  await expect(page.getByRole('status').filter({ hasText: 'Mock API' })).toHaveText('Mock API: online')
 })
 
 test('mounts one WebGL canvas per visit and removes it on exit', async ({ page }) => {
