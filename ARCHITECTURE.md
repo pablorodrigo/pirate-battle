@@ -6,15 +6,18 @@ This document explains how Pirate Battle is organized and why. It grows with the
 
 The application has three parts that change for different reasons:
 
-- **Game** (`src/game`): configuration, rules, input and rendering of the battle. Rules are plain TypeScript in `game/core`; PixiJS in `game/rendering` only draws their state.
-- **Interface** (`src/app`, `src/features`): React screens, menus, the HUD and dialogs.
-- **Data** (`src/shared/api`, `src/shared/contracts`, `src/mocks`): the HTTP client, the contracts it shares with the mock server, and the MSW handlers that implement that server in the browser.
+- **Game** (`src/game`): configuration, rules, input, assets and rendering of the battle. Rules are plain TypeScript in `game/core`; PixiJS in `game/rendering` only draws their state.
+- **Interface** (`src/app`, `src/features`): React screens, menus, the HUD, dialogs and touch controls.
+- **Data** (`src/shared/api`, `src/shared/contracts`, `src/mocks`, `src/features/registration`): the HTTP client, the contracts it shares with the mock server, the MSW handlers that implement that server in the browser, and the outbox that registers finished matches.
 
 ```text
-keyboard ─► InputManager ─► GameRuntime ─► GameSession (rules, fixed steps) ─► World
-                               │                                                │
-                               ├─► PixiRenderer (reads World, draws every frame)◄┘
-                               └─► HUD snapshot ─► React (useSyncExternalStore)
+keyboard / touch ─► InputManager ─► GameRuntime ─► GameSession (rules, fixed steps) ─► World
+                                       │                                                │
+                                       ├─► PixiRenderer (reads World every frame) ◄─────┘
+                                       ├─► HUD snapshot ─► React (useSyncExternalStore)
+                                       └─► match result ─► journal + outbox ─► coordinator
+                                                                                  │
+React lists ─► TanStack Query ─► Axios ─► MSW handlers ─► mock database ◄── mutation (Axios)
 ```
 
 ## Module boundaries
@@ -22,13 +25,13 @@ keyboard ─► InputManager ─► GameRuntime ─► GameSession (rules, fixed
 | Module | May import | Must not import |
 | --- | --- | --- |
 | `game/core`, `game/config` | Each other | PixiJS, React, Axios, MSW, TanStack Query, any other module |
-| Other `game/` modules (`runtime`, `input`, `rendering`) | PixiJS, `game/core`, `game/config`, each other | React, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api` |
+| Other `game/` modules (`assets`, `input`, `rendering`, `runtime`) | PixiJS, `game/core`, `game/config`, each other | React, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api` |
 | `shared/contracts` | Other contracts, `game/config` | React, PixiJS, Axios, MSW, TanStack Query, `app`, `features`, `mocks`, `shared/api`, game rendering and runtime |
 | `shared/api` | Axios, `shared/contracts` | React, PixiJS, MSW, TanStack Query, `app`, `features`, `game`, `mocks` |
-| `mocks` | MSW, `shared/contracts`, `shared/storage`, `shared/api/apiConfig` | React, PixiJS, Axios, TanStack Query, `app`, `features` |
+| `mocks` | MSW, `shared/contracts`, `shared/storage`, `shared/api` configuration | React, PixiJS, Axios, TanStack Query, `app`, `features` |
 | `app`, `features` | Any module above | — |
 
-`.oxlintrc.json` enforces the table with `no-restricted-imports` overrides, so `npm run lint` fails when an import crosses a boundary.
+`.oxlintrc.json` enforces the table with `no-restricted-imports` overrides, so `npm run lint` fails when an import crosses a boundary. `src/testing` (the end-to-end bridge) is only loaded by the e2e build.
 
 ## Simulation
 
@@ -47,7 +50,7 @@ keyboard ─► InputManager ─► GameRuntime ─► GameSession (rules, fixed
 
 A phase that destroys the player ends the match before any later phase runs, so a death and a timeout in the same step end the match by death. The step in which the match ends counts as played time.
 
-**State machine.** A session is `ready`, `running`, `paused`, `finished` or `abandoned`, and only advances while `running`. Leaving the game screen abandons the match: it produces no result.
+**State machine.** A session is `ready`, `running`, `paused`, `finished` or `abandoned`, and only advances while `running`. Leaving the game screen, or reloading the page, abandons the match: it produces no result and is never registered.
 
 **Determinism.** Every random decision comes from one seeded generator (mulberry32) per match, so a seed and the same inputs reproduce the same match.
 
@@ -63,49 +66,112 @@ A phase that destroys the player ends the match before any later phase runs, so 
 - **Shooter:** approaches until it is in range with a clear line of fire, then holds position and aims. It releases the position only beyond the range plus a hysteresis margin, so it does not jitter at the edge. It fires only when in range, aimed within tolerance, with a clear line and a ready cannon.
 - **Navigation.** An enemy that sees the player sails straight at it. Otherwise it follows `NavigationGrid`: a 40-unit grid over the arena with islands inflated by the largest enemy radius. Instead of one A* search per enemy, the grid keeps a single Dijkstra distance field to the player, refreshed every 0.25 s; each enemy walks downhill from its cell and steers at the farthest downhill cell still in sight. Diagonals never cut corners. The cost of an update does not grow with the number of enemies.
 - **Steering.** Turning is proportional to the angle left, so ships never overshoot, and a ship turns in place when its target is far behind it.
-- **Spawns.** One enemy per configured interval of active play, so pauses never queue spawns. The first two are a Chaser and a Shooter, so every match meets both; later kinds come from the seeded generator. A spawn point must be open water, clear of other ships, reachable on the navigation grid and at least 360 units from the player (beyond the Shooter range). After 32 random attempts the arena's fallback points are tried, farthest from the player first; if none is safe, that spawn is skipped.
+- **Spawns.** One enemy per configured interval of active play, so pauses never queue spawns. The first two are a Chaser and a Shooter, so every match meets both; later kinds come from the seeded generator. A spawn point must be open water, clear of other ships, reachable on the navigation grid and at least 360 units from the player (beyond the Shooter range), and a new Shooter waits one cooldown before its first shot. After 32 random attempts the arena's fallback points are tried, farthest from the player first; if none is safe, that spawn is skipped.
 
 ## Input
 
-`InputManager` merges every source into one snapshot per step. An action stays active while any source holds it, so releasing one key never cancels another that holds the same action. `KeyboardInput` uses `KeyboardEvent.code`, so other keyboard layouts keep the same physical keys. It captures game keys only while the match runs, never from form fields, and calls `preventDefault` only for the keys it uses. Auto-repeat never presses an action: after a pause, a key held since before the pause must be released and pressed again.
+`InputManager` merges every source into one snapshot per step. An action stays active while any source holds it, so releasing one key or finger never cancels another that holds the same action.
 
-## Pause
+- **Keyboard.** `KeyboardInput` uses `KeyboardEvent.code`, so other keyboard layouts keep the same physical keys. It captures game keys only while the match runs, never from form fields, and calls `preventDefault` only for the keys it uses. Auto-repeat never presses an action: after a pause, a key held since before the pause must be released and pressed again.
+- **Touch.** On touch screens, two clusters of round buttons sit beside the arena, never over it. Each button uses Pointer Events with pointer capture: the action stays held while the finger that pressed it is down, and `pointerup`, `pointercancel` or a lost capture release only that finger's action. The controls disable panning and zooming (`touch-action: none`), are at least 44 px, and stay out of the tab order because keyboard players have keys.
 
-The match pauses from the Pause button, `P` or `Escape`, when the window loses focus, or when the tab is hidden. While paused, frames keep rendering but never reach the fixed-step loop, so the clock, cooldowns, spawns and movement are frozen and no paused time is replayed. Input is cleared on pause and resume. Resuming always needs a player action: the Resume button, `P` or `Escape`.
+## Pause and orientation
+
+The match pauses from the Pause button, `P` or `Escape`, when the window loses focus, when the tab is hidden, and when a touch device turns to portrait (matches are played in landscape on touch devices). While paused, frames keep rendering but never reach the fixed-step loop, so the clock, cooldowns, spawns and movement are frozen and no paused time is replayed. Input is cleared on pause and resume. Resuming always needs a player action: the Resume button, `P` or `Escape`. Turning back to landscape does not resume on its own.
 
 ## React and the game
 
-**Ownership.** React owns the screens and their layout; PixiJS owns the arena canvas. `useGameRuntime` creates the session, the renderer and the runtime in an effect for each visit of the game screen, and releases all of them in the cleanup. React never touches PixiJS objects, and a match never survives leaving the screen. Play Again changes the screen's React key, so the next match always starts from a fresh session.
+**Ownership.** React owns the screens and their layout; PixiJS owns the arena canvas. `useGameRuntime` loads the shared textures, then creates the session, the renderer and the runtime for each visit of the game screen, and releases all of them in the effect cleanup. React never touches PixiJS objects. Play Again changes the screen's React key, so the next match always starts from a fresh session.
 
 **HUD synchronization.** `GameRuntime` is also an external store: React reads a `HudSnapshot` (status, score, health, remaining time) through `useSyncExternalStore`. The runtime builds the snapshot every frame but publishes a new object only when a displayed value changes, so React renders about once per second during play, never per frame. Positions and animations stay in the simulation and the renderer.
 
-**Accessibility of the match.** Score, time and health are also semantic markup (`dl`, `meter`). A polite live region only announces pause and the end of the match, never the clock. The pause menu is a native modal `dialog`, which traps focus, makes the page behind it inert and restores focus when it closes.
+**Accessibility of the match.** Score, time and health are semantic markup (`dl`, `meter`) behind the HUD art. A polite live region only announces pause and the end of the match, never the clock. The pause menu is a native modal `dialog`, which traps focus, makes the page behind it inert and restores focus when it closes. Screens move focus to their heading when they open.
+
+## Assets and loading
+
+- **Loading.** `loadGameTextures` loads the ship atlas and the tile sheet once, reports progress to the loading screen, and shares the textures across matches through PixiJS's asset cache; a match only starts once they and the renderer are ready. A failed load is forgotten, so Retry fetches again, and the loading screen shows an accessible error with Retry and Main Menu.
+- **Ship atlas.** The ship sheet comes as Sparrow/Starling XML, which PixiJS cannot load, so `parseSparrowAtlas` maps its frames onto textures. Sprite `ship_n` is intact, `n + 6` and `n + 12` show increasing damage and `n + 18` is the wreck; the player is blue, Chasers red and Shooters black.
+- **Densities.** Only the tile sheet and the UI images have true 2× versions. The tile sheet is loaded at resolution 2 on high-density screens, which keeps its frames in logical units.
+- **Main-thread image loading.** Image loads inside PixiJS's worker never settle when a request fails, which would leave the loading screen spinning forever, so images load on the main thread, where failures reject. A 20 s timeout turns a stalled connection into the same recoverable error, and progress reported after a failure no longer replaces the error.
+- **Ownership.** Shared textures belong to the asset cache and are never destroyed by a match. A renderer only destroys what it creates. The shared textures are built in a function of their own, because a closure keeps its whole scope alive: built next to the loader's progress callback, they kept the first game screen in memory.
 
 ## Rendering
 
 **Strict Mode and asynchronous initialization.** `PixiRenderer` owns a private `Application`, created with `sharedTicker: false` and `autoStart: false`. `Application.init()` is asynchronous, and in development React Strict Mode unmounts and remounts every component once, so the cleanup can run before `init()` resolves. In that case `destroy()` only marks the renderer as destroyed, and `mount()` completes the teardown as soon as `init()` settles. A discarded instance never attaches its canvas.
 
-**Views.** The renderer keeps one view per entity id, creates views for new entities, interpolates their pose between the last two simulated steps, and destroys the views of removed entities. Ships darken with damage, flash when hit and carry a level health bar.
+**Terrain.** Water and islands are baked once per match into their own canvas textures, drawing the tiles at whole-unit positions, so neighbouring atlas texels never bleed into seams when the scene scales. The water is a tiling sprite that drifts on simulation time and is clipped to the arena, which keeps the arena bounds visible. Islands use the sand tiles and two decorations each; colliders always come from the arena definition, never from the art.
 
-**Effects.** Muzzle flashes, impacts and explosions react to the events of each step and run on simulation time, so they freeze while the match is paused and look the same for the same match.
+**Views.** The renderer keeps one view per entity id, creates views for new entities, interpolates their pose between the last two simulated steps, and destroys the views of removed entities. A ship's sprite follows its health (intact above two thirds, damaged above one third, then critical with flames), flashes red when hit and carries a level health bar. Cannonballs have short trails.
 
-**Disposal order.** Views are destroyed first, then the shared `GraphicsContext`s of projectiles and effects, then the application with `{ removeView: true }` and `{ children: true, context: true }`. In PixiJS 8 a `Graphics` frees its own context only when destroyed without options or with `context: true`, and leaves a shared context alone when destroyed without options, so each context is destroyed exactly once.
+**Effects.** Muzzle flashes, impacts, splashes, explosions and sinking wrecks react to the events of each step and run on simulation time, so they freeze while the match is paused and look the same for the same match.
+
+**Disposal order.** Views are destroyed first, then the shared geometry of trails and splashes, then the terrain's baked textures, then the application with `{ removeView: true }` and `{ children: true, context: true }`. Baked canvases are emptied as their textures are destroyed, because PixiJS's global pool of draw batches may still reference those textures until a later match reuses the batches. In PixiJS 8 a `Graphics` frees its own context only when destroyed without options or with `context: true`, and leaves a shared context alone when destroyed without options, so each context is destroyed exactly once.
 
 **Viewport.** The arena has a fixed logical size of 1280 × 720 units. A `ResizeObserver` on the host element resizes the renderer, scales the scene uniformly by `min(width / 1280, height / 720)` and centers it with letterbox margins. The host is absolutely positioned, so the canvas size never feeds back into the observed size. The resolution follows `devicePixelRatio`, capped at 2, with `autoDensity`.
 
+## UI skin
+
+`installUiSkin` reads `ui_sheet.json` and publishes it as CSS custom properties before the first render. Each image is an `image-set` of its 1× and 2× files, resolved from its `ui.image` path, which is relative to the atlas. Sizes, borders and insets stay in the atlas's logical (1×) units, so the retina files never double a control's size:
+
+- the menu panel is a nine-slice whose cut is expressed as percentages of the image (identical for both densities), with border widths in logical pixels and content padding from `content_rect`;
+- menu buttons take their label area from `label_rect`;
+- round buttons draw their icon at `icon_render_size`;
+- the health bar draws the frame, then the fill clipped along x from the left of `fill_rect`, as `clip_axis` and `draw_order` specify.
+
+## Ranking and match history
+
+**Contracts.** `shared/contracts/matches.ts` defines completed matches, ranking entries, pages and registration responses, each with a runtime parser: a type annotation does not validate JSON, and a response that does not match its contract is an error, never data. A completed match holds its id, the player's id and name, the completion date (UTC), the score, the active duration, the end reason, the ruleset id and the configuration it ran on.
+
+| Operation | Endpoint | Behavior |
+| --- | --- | --- |
+| Ranking | `GET /api/ranking?rulesetId=…&page=1&pageSize=10` | Confirmed matches of one ruleset, ranked, with their global position. |
+| History | `GET /api/players/:playerId/matches?page=1&pageSize=10` | The player's confirmed matches, newest first. |
+| Register | `POST /api/matches` with `Idempotency-Key: <matchId>` | `201` for a new match, `200` with the existing record for an identical resend, `409` for a different payload under the same id. |
+
+**Comparable rankings.** The ruleset id combines the rules version with the two Options settings (`r1-d120-s2.5`), because the version fixes every other parameter and the arena. Only matches with the same id are ranked together. Ties are broken by survival time (longer first), then by the earlier match, then by the match id, so every position is deterministic. The ranking is derived from the confirmed matches, so a match can never be ranked twice or without its history entry.
+
+**Queries.** Every parameter that changes a response is part of its key (`['ranking', rulesetId, page, pageSize]`, `['history', playerId, page, pageSize]`). Lists keep the previous page on screen while the next loads, and refetch every time their tab is shown (`refetchOnMount: 'always'`). Defaults: `staleTime` 15 s, `gcTime` 5 min; only transient failures (network, timeout, 408, 429, 5xx) retry, at most twice, 1 s and then 2 s apart. Loading, empty, error and background refresh states are explicit, and a failed refresh keeps the saved data on screen. The request's `AbortSignal` reaches Axios, so cancelled queries cancel their requests.
+
+**Late answers.** Cancelling requests reduces races but does not close them: a list shown again can share a read that started before a registration instead of starting a new one. Every page and registration therefore carries the database revision, which grows with each new match. `RevisionGuard` remembers the newest revision the client has seen, discards any older answer and repeats the read (at most three times), so a late response never replaces newer data.
+
+## Registration and the outbox
+
+1. A match starts with a new id. When it ends, the client builds the completed match and writes it to the journal as the last result **and** as a pending registration, in a single write, before any request.
+2. `RegistrationCoordinator`, created once for the whole app, sends the outbox one request at a time, never two for the same match, through a TanStack Query mutation keyed by the match id. Mutation retries are disabled; the coordinator owns the policy.
+3. On success it removes that entry, raises the revision guard and invalidates both lists: active lists refetch at once (cancelling older requests), the others on their next display.
+4. Transient failures back off (1 s, 2 s, 4 s… up to 30 s) and retry on their own, and also immediately when the browser goes online or the network scenario changes. A rejected registration waits for **Try again**. An entry in backoff never blocks the others.
+
+The result screen shows the registration status of its own match (saving, saved, waiting to retry, or rejected), and the player can start another match while a registration is pending. After a reload, the coordinator resumes the outbox and the result screen reopens until the player leaves it. Because every resend carries the original payload and idempotency key, a timeout after the server saved the match returns the existing record instead of creating a second one.
+
+## Local persistence
+
+| Store | Owner | Lifetime |
+| --- | --- | --- |
+| `pirate-battle:settings` | Options store | Until changed; restored after reloads. |
+| `pirate-battle:player` | Player identity | Created on first use. |
+| `pirate-battle:journal` | Match journal | Last result, its reopen flag and the outbox, until confirmed or reset. |
+| `pirate-battle:mock-database` | Mock server | Confirmed matches and the revision, until a demo reset. |
+| `pirate-battle:network-scenario` | Mock server | The selected scenario. |
+
+Every entry is stored as `{ version, data }` and validated on read; an older version or corrupt data is ignored instead of trusted. Writes report failures (blocked or full storage), and the result screen warns when a match could not be stored. The journal assumes a single tab writing at a time.
+
 ## Mock API
 
-- MSW serves the API in development, in the end-to-end tests and in the published build, so `msw` is a runtime dependency.
+- MSW serves the API in development, in the end-to-end tests and in the published build, so `msw` is a runtime dependency. Handlers, contracts and fixtures are the same in all three.
 - `src/main.tsx` awaits `worker.start()` before the first render, so no query runs before the mocks are ready. If the worker fails to start, the app logs a warning and renders anyway: the game never depends on the API.
 - The worker module is loaded with a dynamic import. Builds with `VITE_ENABLE_MOCKS=false` leave the MSW library out of the bundle.
-- Every request goes through a single Axios instance (`shared/api/httpClient.ts`). Contract modules validate response bodies at runtime before they reach TanStack Query, because a type annotation does not validate JSON.
-- TanStack Query defaults: `staleTime` of 15 s, `gcTime` of 5 min, and two retries with exponential backoff (1 s, then 2 s).
+- MSW runs the handlers in the page, so the mock database is a synchronous read-modify-write over `localStorage`: two writes can never interleave, and registration is a single atomic step. The database is seeded with fixture matches of other captains.
+- **Scenarios** shape each request: delays (fixed, or seeded per request so they are reproducible), out-of-order reads that answer with the data from when they arrived, HTTP 4xx/5xx and network failures, timeouts, a registration saved before its answer is lost, and an outage. Delays scale with the request timeout, which the e2e build shortens to 2 s, so failure scenarios stay fast in tests.
+- **Reset** cancels requests in flight, restores the fixtures and the success scenario, clears the journal and the revision guard, and bumps a generation counter. A registration that started before the reset checks the counter before writing, so it can never land in the restored data.
 
 ## Testing
 
-- **Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, configuration and navigation between screens.
-- **End-to-end tests** (Playwright) run against the e2e build (`vite --mode e2e`), which installs a test bridge on `window.__PIRATE_BATTLE__`. Before a match starts, a scenario can set the seed, switch to a manual clock and place ships. During the match the bridge only reads state and advances whole steps. It never writes health or score, and tests act through real key presses. The public build leaves the bridge out, because the flag that loads it is replaced at build time.
+- **Unit tests** (Vitest) cover the rules in isolation: geometry, the fixed-step loop, input merging, movement, combat, enemies, navigation, spawns, configuration, the atlas parser, the mock database, the revision guard, the registration outbox and screen navigation.
+- **End-to-end tests** (Playwright) run against the e2e build (`vite --mode e2e`), which installs a test bridge on `window.__PIRATE_BATTLE__`. Before a match starts, a scenario can set the seed, switch to a manual clock and place ships. During the match the bridge only reads state and advances whole steps. It never writes health or score, and tests act through real key presses, or held fingers through the Chrome DevTools Protocol, since Playwright's touchscreen only taps. The public build leaves the bridge out, because the flag that loads it is replaced at build time.
+- **Requests from the page go through MSW's service worker**, which fetches unhandled requests itself, so tests intercept asset requests with `context.route` (which sees service worker traffic) rather than `page.route`.
 - **Strict Mode** double mounting only happens in development builds, so the `dev-strict-mode` project runs the same suite against the dev server.
+- **Visual regression** compares the main menu, the arena in a known state and the result screen, on desktop and mobile. Rendering differs between operating systems, so baselines are versioned per platform; the Linux ones come from the official Playwright image, which the CI workflow also uses, on the same arm64 architecture.
+- **Profiling** has its own Playwright configuration (`playwright.profile.config.ts`), outside the regular suite. It drives Google Chrome, whose headless mode renders on the real GPU, while a bot plays through keyboard events; [docs/PROFILING.md](docs/PROFILING.md) describes the method and the results.
 
 ## Balancing
 
@@ -123,7 +189,7 @@ All rule parameters live in a typed configuration (`src/game/config`); systems n
 | Shooter | 40 HP, 75 units/s, 1.8 rad/s, radius 22, range 280, 10 damage every 1.5 s |
 | Spawn distance | at least 360 units from the player |
 
-A match runs on a frozen copy of the configuration built when it starts, so changing Options only affects the next match. The `rulesVersion` identifies the balance; a fingerprint test fails when the configuration changes without a new version, so rankings never mix matches played under different rules.
+Two front shots sink a Chaser and two sink a Shooter; a full broadside (45 damage) sinks either at once, which rewards positioning over holding the bow cannon. A Chaser's contact costs a quarter of the player's health, so four rams end a match. A match runs on a frozen copy of the configuration built when it starts, so changing Options only affects the next match. The `rulesVersion` identifies the balance; a fingerprint test fails when the configuration changes without a new version, so rankings never mix matches played under different rules.
 
 ## Tooling decisions
 
@@ -131,8 +197,12 @@ A match runs on a frozen copy of the configuration built when it starts, so chan
 - **Strict TypeScript.** `strict` is set explicitly, together with `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride` and `noImplicitReturns`. `erasableSyntaxOnly` rules out enums, namespaces and parameter properties.
 - **Pinned dependencies.** Versions are exact, and `.npmrc` sets `min-release-age=7`, so new installs only pick releases that have been public for at least a week.
 - **MSW 2 rather than MSW 3.** MSW 3.0.0 came out less than two weeks before the project started and was still receiving frequent patches. MSW 2.15 is stable and well documented.
+- **Ids from `crypto.getRandomValues`.** `crypto.randomUUID` only exists in secure contexts, which would break a phone opening the dev server over plain HTTP on the local network.
 
 ## Known limitations
 
-- The arena still uses blockout shapes: the provided art is not integrated yet.
-- Controls are keyboard only; touch controls are not implemented yet.
+- Only one tab should play at a time: two tabs share the journal and the mock database without coordination.
+- Service workers, and therefore the mock API, need a secure context: a phone on the local network must open the dev server through HTTPS (for example a Vercel preview) to reach the API. The game itself still runs.
+- Sound effects are not played yet; feedback is visual.
+- Number fields display decimals in the browser's own locale (for example `2,5`).
+- In containers without a GPU, WebGL runs in software, which is slower but renders identically for the visual baselines.
