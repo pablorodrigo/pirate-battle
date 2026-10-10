@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# The asset pack ships Flash sources that the swap-file pattern above would hide
+!assets/**/*.swf
