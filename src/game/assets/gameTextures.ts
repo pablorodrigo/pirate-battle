@@ -89,7 +89,20 @@ async function fetchGameTextures(onProgress: (fraction: number) => void): Promis
   if (!shipSheet || !tileSheet) {
     throw new Error('The game textures did not load.')
   }
+  return createGameTextures(frames, shipSheet, tileSheet)
+}
 
+/**
+ * Builds the shared textures in a scope of their own. Closures that outlive
+ * the load, such as `bakeTiles`, keep their whole scope alive, so they must
+ * not share it with the first caller's progress callback, which would keep
+ * that caller's game screen in memory for the rest of the session.
+ */
+function createGameTextures(
+  frames: ReadonlyMap<string, AtlasFrame>,
+  shipSheet: Texture,
+  tileSheet: Texture,
+): GameTextures {
   const fromAtlas = (name: string): Texture => {
     const frame = frames.get(name)
     if (!frame) {
