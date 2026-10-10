@@ -1,10 +1,13 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import { expect, test, type CDPSession, type Page } from '@playwright/test'
-import { defaultArena } from '../../src/game/config/defaultArena.ts'
+import { defaultGameplayConfig } from '../../src/game/config/defaultConfig.ts'
+import { generateMap } from '../../src/game/core/map/generateMap.ts'
 
 const MATCH_SECONDS = 180
 const SEED = 2026
+/** The map the seed draws, as every match does; the bot steers around its islands. */
+const MAP = generateMap(SEED, defaultGameplayConfig)
 /**
  * The bot lasts the whole match when an enemy spawns every 5 s. The default
  * and the fastest spawn rates load the match more, until the bot sinks.
@@ -67,7 +70,7 @@ async function prepare(page: Page, spawnSeconds: number, recordFrames: boolean):
         'pirate-battle:player',
         JSON.stringify({ version: 1, data: { id: 'player-profile', name: 'Captain Profile' } }),
       )
-      window.__PIRATE_BATTLE_SCENARIO__ = { seed }
+      window.__PIRATE_BATTLE_SCENARIO__ = { seed, map: 'generated' }
 
       if (frames) {
         const times: number[] = []
@@ -241,7 +244,7 @@ async function prepare(page: Page, spawnSeconds: number, recordFrames: boolean):
       spawn: spawnSeconds,
       seed: SEED,
       frames: recordFrames,
-      arena: { width: defaultArena.width, height: defaultArena.height, islands: defaultArena.islands },
+      arena: { width: MAP.arena.width, height: MAP.arena.height, islands: MAP.arena.islands },
     },
   )
 }
@@ -428,6 +431,7 @@ for (const run of MATCH_RUNS) {
         durationSettingSeconds: MATCH_SECONDS,
         spawnIntervalSeconds: run.spawnSeconds,
         seed: SEED,
+        map: MAP.obstacles.map((obstacle) => obstacle.kind),
         outcome,
         measuredSeconds: round(seconds, 1),
         pausedDuringRun: paused,
@@ -547,7 +551,13 @@ test(`memory across ${CYCLES} play-and-leave cycles`, async ({ page }, testInfo)
   const last = snapshots.at(-1)
   const summary = {
     environment: env,
-    cycle: { count: CYCLES, playSeconds: CYCLE_PLAY_MS / 1000, spawnIntervalSeconds: CYCLE_SPAWN_SECONDS, seed: SEED },
+    cycle: {
+      count: CYCLES,
+      playSeconds: CYCLE_PLAY_MS / 1000,
+      spawnIntervalSeconds: CYCLE_SPAWN_SECONDS,
+      seed: SEED,
+      map: MAP.obstacles.map((obstacle) => obstacle.kind),
+    },
     growthFromCycle1ToLast:
       first && last
         ? {

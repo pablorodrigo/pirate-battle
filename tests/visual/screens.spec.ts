@@ -49,6 +49,13 @@ test.describe('screens', { tag: '@visual' }, () => {
     await expect(page).toHaveScreenshot('arena.png', { timeout: 15_000 })
   })
 
+  test('drawn map in a known state', async ({ page }) => {
+    // A fixed seed draws the same islands, coasts, fort, reef and decorations every run.
+    await startMatch(page, { seed: 25, map: 'generated', spawns: false })
+    await advance(page, 5)
+    await expect(page).toHaveScreenshot('drawn-map.png', { timeout: 15_000 })
+  })
+
   test('result screen', async ({ page }) => {
     await finishQuietMatch(page)
     await expect(page.getByTestId('registration-status')).toHaveAttribute('data-status', 'confirmed')
