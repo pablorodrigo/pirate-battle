@@ -1,0 +1,41 @@
+.guide {
+  display: grid;
+  gap: 0.5rem;
+  width: min(30rem, calc(100vw - 2rem));
+  text-align: left;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.goal {
+  margin: 0;
+}
+
+.controls {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.control {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.control dd {
+  margin: 0;
+}
+
+.control kbd {
+  display: inline-block;
+  min-width: 1.75rem;
+  padding: 0 0.4rem;
+  border: 1px solid currentColor;
+  border-radius: 0.3rem;
+  font: inherit;
+  text-align: center;
+}

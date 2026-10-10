@@ -1,6 +1,7 @@
 .menu {
   display: grid;
-  place-content: center;
+  justify-items: center;
+  align-content: center;
   gap: 1.5rem;
   min-height: 100%;
   padding: 1rem;
@@ -13,8 +14,14 @@
   letter-spacing: 0.04em;
 }
 
-.play {
-  justify-self: center;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.primary {
   min-width: 12rem;
   font-size: 1.25rem;
 }

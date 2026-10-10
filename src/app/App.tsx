@@ -1,13 +1,16 @@
 import { useReducer } from 'react'
-import { defaultMatchSettings } from '../game/config/matchSettings.ts'
 import { GameScreen } from '../features/gameplay/GameScreen.tsx'
 import { MainMenu } from '../features/menu/MainMenu.tsx'
+import { OptionsScreen } from '../features/options/OptionsScreen.tsx'
+import { getSettings } from '../features/options/settingsStore.ts'
 import { ResultScreen } from '../features/results/ResultScreen.tsx'
 import { initialNavigation, navigationReducer } from './navigation.ts'
 
 export function App() {
   const [{ screen }, dispatch] = useReducer(navigationReducer, initialNavigation)
   const showMenu = () => dispatch({ type: 'showMenu' })
+  // Each match runs on the settings saved when it starts.
+  const play = () => dispatch({ type: 'play', settings: getSettings() })
 
   switch (screen.name) {
     case 'game':
@@ -20,14 +23,10 @@ export function App() {
         />
       )
     case 'result':
-      return (
-        <ResultScreen
-          result={screen.result}
-          onPlayAgain={() => dispatch({ type: 'play', settings: screen.settings })}
-          onMainMenu={showMenu}
-        />
-      )
+      return <ResultScreen result={screen.result} onPlayAgain={play} onMainMenu={showMenu} />
+    case 'options':
+      return <OptionsScreen onBack={showMenu} />
     case 'menu':
-      return <MainMenu onPlay={() => dispatch({ type: 'play', settings: defaultMatchSettings })} />
+      return <MainMenu onPlay={play} onOptions={() => dispatch({ type: 'showOptions' })} />
   }
 }

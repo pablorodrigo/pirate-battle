@@ -1,0 +1,71 @@
+.screen {
+  display: grid;
+  place-content: center;
+  gap: 1.5rem;
+  min-height: 100%;
+  padding: 1rem;
+}
+
+.title {
+  margin: 0;
+  text-align: center;
+}
+
+.form {
+  display: grid;
+  gap: 1.25rem;
+  width: min(28rem, calc(100vw - 2rem));
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.field label {
+  font-weight: 700;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inputRow input {
+  width: 8rem;
+  min-height: 44px;
+  padding: 0.25rem 0.5rem;
+  border: 2px solid currentColor;
+  border-radius: 0.5rem;
+  font: inherit;
+  color: inherit;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.inputRow input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+.error {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-error);
+}
+
+.status {
+  min-height: 1.5em;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
