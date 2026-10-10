@@ -12,6 +12,7 @@
     "lint": "oxlint --deny-warnings",
     "typecheck": "tsc -b",
     "preview": "vite preview",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test:report": "playwright show-report"
   },
@@ -31,7 +32,8 @@
     "@vitejs/plugin-react": "6.1.2",
     "oxlint": "1.87.0",
     "typescript": "6.0.3",
-    "vite": "8.3.4"
+    "vite": "8.3.4",
+    "vitest": "4.1.11"
   },
   "msw": {
     "workerDirectory": [
