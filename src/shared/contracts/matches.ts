@@ -47,12 +47,15 @@ export type Page<T> = {
   readonly pageSize: number
   readonly totalItems: number
   readonly totalPages: number
+  /** Database revision the page was read at; it grows with every registered match. */
+  readonly revision: number
 }
 
 export type RegisterMatchResponse = {
   readonly match: RegisteredMatch
   /** False when the match was already registered: a resend returns the existing record. */
   readonly created: boolean
+  readonly revision: number
 }
 
 export type ApiErrorBody = {
@@ -165,6 +168,7 @@ export function parsePage<T>(value: unknown, parseItem: Parser<T>): Page<T> {
     pageSize: count(source, 'pageSize', 1),
     totalItems: count(source, 'totalItems'),
     totalPages: count(source, 'totalPages'),
+    revision: count(source, 'revision'),
   }
 }
 
@@ -173,7 +177,7 @@ export function parseRegisterMatchResponse(value: unknown): RegisterMatchRespons
   if (typeof source.created !== 'boolean') {
     throw new ContractError('"created" must be a boolean.')
   }
-  return { match: parseRegisteredMatch(source.match), created: source.created }
+  return { match: parseRegisteredMatch(source.match), created: source.created, revision: count(source, 'revision') }
 }
 
 /** Two submissions describe the same match only if every field matches. */

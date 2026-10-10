@@ -91,9 +91,9 @@ function pageParams(url: URL): { page: number; pageSize: number } | null {
 function registration(outcome: RegisterOutcome): Response {
   switch (outcome.kind) {
     case 'created':
-      return HttpResponse.json({ match: outcome.match, created: true }, { status: 201 })
+      return HttpResponse.json({ match: outcome.match, created: true, revision: outcome.revision }, { status: 201 })
     case 'existing':
-      return HttpResponse.json({ match: outcome.match, created: false }, { status: 200 })
+      return HttpResponse.json({ match: outcome.match, created: false, revision: outcome.revision }, { status: 200 })
     case 'conflict':
       return errorResponse(409, 'conflict', 'Another match was already registered with this id.')
   }

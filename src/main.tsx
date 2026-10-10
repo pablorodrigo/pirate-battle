@@ -4,6 +4,9 @@ import { createRoot } from 'react-dom/client'
 import { App } from './app/App.tsx'
 import { startMockApi } from './app/bootstrapMocks.ts'
 import { createQueryClient } from './app/queryClient.ts'
+import { matchJournal } from './features/registration/matchJournal.ts'
+import { RegistrationCoordinator } from './features/registration/RegistrationCoordinator.ts'
+import { RegistrationProvider } from './features/registration/RegistrationProvider.tsx'
 import './shared/styles/global.css'
 
 const rootElement = document.getElementById('root')
@@ -26,11 +29,16 @@ try {
 }
 
 const queryClient = createQueryClient()
+// Lives for the whole app: pending registrations keep going across screens and matches.
+const registration = new RegistrationCoordinator(queryClient, matchJournal)
+registration.start()
 
 createRoot(rootElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <RegistrationProvider coordinator={registration}>
+        <App />
+      </RegistrationProvider>
     </QueryClientProvider>
   </StrictMode>,
 )

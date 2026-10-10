@@ -1,5 +1,6 @@
 import { isAxiosError } from 'axios'
 import { ContractError } from '../contracts/matches.ts'
+import { StaleResponseError } from './revisionGuard.ts'
 
 export type ApiFailure = {
   readonly kind: 'network' | 'timeout' | 'http' | 'invalid-response' | 'cancelled' | 'unknown'
@@ -10,6 +11,9 @@ export type ApiFailure = {
 }
 
 export function toApiFailure(error: unknown): ApiFailure {
+  if (error instanceof StaleResponseError) {
+    return { kind: 'network', status: null, retryable: true, message: error.message }
+  }
   if (error instanceof ContractError) {
     return { kind: 'invalid-response', status: null, retryable: false, message: 'The server sent an unexpected response.' }
   }

@@ -10,6 +10,7 @@ import {
   type RegisterMatchResponse,
 } from '../contracts/matches.ts'
 import { httpClient } from './httpClient.ts'
+import { revisionGuard } from './revisionGuard.ts'
 
 export type RankingQuery = {
   readonly rulesetId: string
@@ -23,18 +24,22 @@ export type HistoryQuery = {
   readonly pageSize: number
 }
 
-export async function fetchRanking(query: RankingQuery, signal: AbortSignal): Promise<Page<RankingEntry>> {
-  const response = await httpClient.get<unknown>('/ranking', { params: query, signal })
-  return parsePage(response.data, parseRankingEntry)
+export function fetchRanking(query: RankingQuery, signal: AbortSignal): Promise<Page<RankingEntry>> {
+  return revisionGuard.fresh(async () => {
+    const response = await httpClient.get<unknown>('/ranking', { params: query, signal })
+    return parsePage(response.data, parseRankingEntry)
+  })
 }
 
-export async function fetchHistory(query: HistoryQuery, signal: AbortSignal): Promise<Page<RegisteredMatch>> {
+export function fetchHistory(query: HistoryQuery, signal: AbortSignal): Promise<Page<RegisteredMatch>> {
   const { playerId, page, pageSize } = query
-  const response = await httpClient.get<unknown>(`/players/${encodeURIComponent(playerId)}/matches`, {
-    params: { page, pageSize },
-    signal,
+  return revisionGuard.fresh(async () => {
+    const response = await httpClient.get<unknown>(`/players/${encodeURIComponent(playerId)}/matches`, {
+      params: { page, pageSize },
+      signal,
+    })
+    return parsePage(response.data, parseRegisteredMatch)
   })
-  return parsePage(response.data, parseRegisteredMatch)
 }
 
 /** Registering is idempotent: the match id is the idempotency key, so a resend returns the existing record. */
@@ -42,5 +47,8 @@ export async function registerMatch(match: CompletedMatch): Promise<RegisterMatc
   const response = await httpClient.post<unknown>('/matches', match, {
     headers: { 'Idempotency-Key': match.matchId },
   })
-  return parseRegisterMatchResponse(response.data)
+  const registration = parseRegisterMatchResponse(response.data)
+  // Lists read before this registration are now stale.
+  revisionGuard.note(registration.revision)
+  return registration
 }

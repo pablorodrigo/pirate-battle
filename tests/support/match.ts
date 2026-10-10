@@ -5,16 +5,24 @@ export const STEPS_PER_SECOND = 60
 
 /**
  * Starts a match from the main menu with a test scenario. The manual clock is
- * on by default, so the simulation only advances through `advance()`.
+ * on by default, so the simulation only advances through `advance()`. `url`
+ * can select a network scenario, e.g. `/?scenario=unavailable`.
  */
-export async function startMatch(page: Page, scenario: MatchScenario = {}): Promise<void> {
+export async function startMatch(page: Page, scenario: MatchScenario = {}, url = '/'): Promise<void> {
   const resolved: MatchScenario = { seed: 1, manualClock: true, ...scenario }
   await page.addInitScript((value) => {
     window.__PIRATE_BATTLE_SCENARIO__ = value
   }, resolved)
-  await page.goto('/')
+  await page.goto(url)
   await page.getByRole('button', { name: 'Play' }).click()
   await expect(page.getByTestId('game-canvas')).toHaveAttribute('data-state', 'ready')
+}
+
+/** Plays a quiet match to the end of its default two minutes, landing on the result screen. */
+export async function finishQuietMatch(page: Page, url = '/'): Promise<void> {
+  await startMatch(page, { spawns: false }, url)
+  await advance(page, 120 * STEPS_PER_SECOND)
+  await expect(page.getByRole('heading', { level: 1, name: "Time's up!" })).toBeVisible()
 }
 
 /** Runs whole simulation steps with whatever input the test is holding. */

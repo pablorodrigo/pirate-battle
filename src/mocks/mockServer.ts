@@ -1,22 +1,29 @@
-import { parseRegisteredMatch, type RegisteredMatch } from '../shared/contracts/matches.ts'
+import { NETWORK_CHANGED_EVENT } from '../shared/api/networkEvents.ts'
+import { parseRegisteredMatch } from '../shared/contracts/matches.ts'
 import { readStored, writeStored } from '../shared/storage/localStore.ts'
-import { MatchRepository, type MatchStore } from './MatchRepository.ts'
+import { MatchRepository, type MatchStore, type StoredDatabase } from './MatchRepository.ts'
 import { isNetworkScenario, NETWORK_SCENARIOS, type NetworkScenario } from './networkScenarios.ts'
 
 const DATABASE_KEY = 'pirate-battle:mock-database'
 const SCENARIO_KEY = 'pirate-battle:network-scenario'
 const STORAGE_VERSION = 1
+const DATABASE_VERSION = 2
 
-/** Fired on window whenever the scenario changes, so clients can retry right away. */
-export const NETWORK_CHANGED_EVENT = 'pirate-battle:network-changed'
+function parseDatabase(data: unknown): StoredDatabase | null {
+  if (typeof data !== 'object' || data === null) {
+    return null
+  }
+  const { revision, matches } = data as Record<string, unknown>
+  if (typeof revision !== 'number' || !Array.isArray(matches)) {
+    return null
+  }
+  return { revision, matches: matches.map(parseRegisteredMatch) }
+}
 
 const browserMatchStore: MatchStore = {
-  load: () =>
-    readStored(DATABASE_KEY, STORAGE_VERSION, (data) =>
-      Array.isArray(data) ? data.map(parseRegisteredMatch) : null,
-    ),
-  save: (matches: readonly RegisteredMatch[]) => {
-    writeStored(DATABASE_KEY, STORAGE_VERSION, matches)
+  load: () => readStored(DATABASE_KEY, DATABASE_VERSION, parseDatabase),
+  save: (database) => {
+    writeStored(DATABASE_KEY, DATABASE_VERSION, database)
   },
 }
 

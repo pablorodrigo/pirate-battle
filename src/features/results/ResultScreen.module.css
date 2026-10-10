@@ -35,6 +35,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+.registration {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  max-width: min(30rem, calc(100vw - 2rem));
+}
+
+.registration p {
+  margin: 0;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

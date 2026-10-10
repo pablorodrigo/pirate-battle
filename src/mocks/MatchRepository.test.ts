@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import type { CompletedMatch, RegisteredMatch } from '../shared/contracts/matches.ts'
-import { MatchRepository, type MatchStore } from './MatchRepository.ts'
+import type { CompletedMatch } from '../shared/contracts/matches.ts'
+import { MatchRepository, type MatchStore, type StoredDatabase } from './MatchRepository.ts'
 
 function memoryStore(): MatchStore {
-  let saved: RegisteredMatch[] | null = null
+  let saved: StoredDatabase | null = null
   return {
-    load: () => (saved ? [...saved] : null),
-    save: (matches) => {
-      saved = [...matches]
+    load: () => saved,
+    save: (database) => {
+      saved = database
     },
   }
 }
@@ -38,7 +38,11 @@ describe('MatchRepository', () => {
     const resend = repository.register(match(), new Date('2026-10-10T12:05:00.000Z'))
 
     expect(first.kind).toBe('created')
-    expect(resend).toEqual({ kind: 'existing', match: first.kind === 'created' ? first.match : null })
+    expect(resend).toEqual({
+      kind: 'existing',
+      match: first.kind === 'created' ? first.match : null,
+      revision: first.kind === 'created' ? first.revision : null,
+    })
     expect(repository.history('player-local', 1, 10).totalItems).toBe(1)
     expect(repository.ranking('r1-d120-s2.5', 1, 10).totalItems).toBe(1)
   })
@@ -83,6 +87,18 @@ describe('MatchRepository', () => {
     const second = repository.history('player-local', 2, 5)
     expect(second).toMatchObject({ page: 2, pageSize: 5, totalItems: 12, totalPages: 3 })
     expect(second.items.map((item) => item.matchId)).toEqual(['m7', 'm6', 'm5', 'm4', 'm3'])
+  })
+
+  it('raises the revision on every new registration only', () => {
+    const repository = new MatchRepository(memoryStore())
+    repository.reset('empty')
+    const before = repository.ranking('r1-d120-s2.5', 1, 10).revision
+
+    repository.register(match(), NOW)
+    repository.register(match(), NOW)
+
+    expect(repository.ranking('r1-d120-s2.5', 1, 10).revision).toBe(before + 1)
+    expect(repository.history('player-local', 1, 10).revision).toBe(before + 1)
   })
 
   it('seeds fixtures of other players on first use', () => {
