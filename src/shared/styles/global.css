@@ -10,6 +10,22 @@
   color: var(--color-text);
   background-color: var(--color-sea-deep);
   -webkit-font-smoothing: antialiased;
+  /* A game, not a document: dragging a finger never selects text, a long
+     press opens no callout and a tap flashes no highlight. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  /* A double tap never zooms; pinch zoom stays available in the menus. */
+  touch-action: manipulation;
+}
+
+/* Form fields stay selectable and editable. */
+input,
+select,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 *,
@@ -23,6 +39,12 @@ body,
 #root {
   height: 100%;
   margin: 0;
+}
+
+html,
+body {
+  /* A drag that reaches an edge neither bounces the page nor pulls to refresh. */
+  overscroll-behavior: none;
 }
 
 button {

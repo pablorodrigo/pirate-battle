@@ -10,6 +10,7 @@ import { TouchControls } from './TouchControls.tsx'
 import { usePortraitTouch, useTouchDevice } from './useDeviceTraits.ts'
 import { useGameRuntime } from './useGameRuntime.ts'
 import { useMatchHud } from './useMatchHud.ts'
+import { useNoPageZoom } from './useNoPageZoom.ts'
 
 type GameScreenProps = {
   settings: MatchSettings
@@ -24,6 +25,7 @@ export function GameScreen({ settings, onFinished, onExit }: GameScreenProps) {
   const hud = useMatchHud(runtime)
   const touch = useTouchDevice()
   const portrait = usePortraitTouch()
+  useNoPageZoom()
 
   // Touch devices play in landscape: turning to portrait pauses without changing any rule.
   useEffect(() => {

@@ -5,6 +5,8 @@
   /* Keep the HUD and controls clear of notches and rounded corners. */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
+  /* Fingers belong to the controls: no gesture on the game screen scrolls or zooms the page. */
+  touch-action: none;
 }
 
 .playfield {
