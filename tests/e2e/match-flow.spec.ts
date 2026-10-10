@@ -43,6 +43,32 @@ test('ends by timeout, shows the result and restarts cleanly', async ({ page }) 
   await expect(page.locator('canvas')).toHaveCount(1)
 })
 
+test('abandoning a match from the pause menu records nothing', async ({ page }) => {
+  let registrations = 0
+  page.on('request', (request) => {
+    if (request.method() === 'POST' && request.url().includes('/api/matches')) {
+      registrations += 1
+    }
+  })
+  await startMatch(page, { spawns: false })
+  await advance(page, 30 * STEPS_PER_SECOND)
+
+  await page.keyboard.press('Escape')
+  await page.getByRole('dialog', { name: 'Paused' }).getByRole('button', { name: 'Main Menu' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Pirate Battle' })).toBeVisible()
+
+  // No result reopens after a reload, and neither list knows the abandoned match.
+  await page.reload()
+  await expect(page.getByRole('heading', { level: 1, name: 'Pirate Battle' })).toBeVisible()
+  const ranking = page.getByRole('tabpanel', { name: 'Ranking' })
+  await expect(ranking.getByRole('table')).toBeVisible()
+  await expect(ranking.getByRole('row', { name: /\(you\)/ })).toHaveCount(0)
+  await page.getByRole('tab', { name: 'Match History' }).click()
+  await expect(page.getByRole('tabpanel', { name: 'Match History' })).toContainText('no registered matches yet')
+  expect(await page.evaluate(() => window.localStorage.getItem('pirate-battle:journal'))).toBeNull()
+  expect(registrations).toBe(0)
+})
+
 test('ends by death when the player sinks', async ({ page }) => {
   await startMatch(page, {
     spawns: false,
