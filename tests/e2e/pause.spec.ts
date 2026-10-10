@@ -26,6 +26,19 @@ test('pauses from the keyboard, freezes the clock and resumes only on request', 
   await expect(clock).not.toHaveText(pausedAt, { timeout: 3000 })
 })
 
+test('pauses automatically when the tab is hidden', async ({ page }) => {
+  await startMatch(page)
+  // Headless pages are never hidden for real, so the browser's report is simulated.
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+
+  const dialog = page.getByRole('dialog', { name: 'Paused' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog).toContainText('the tab was hidden')
+})
+
 test('pauses automatically when the window loses focus', async ({ page }) => {
   await startMatch(page)
   await page.evaluate(() => window.dispatchEvent(new Event('blur')))
