@@ -6,6 +6,8 @@ const isCI = Boolean(process.env.CI)
 
 export default defineConfig({
   testDir: './tests',
+  // Profiling has its own configuration: playwright.profile.config.ts.
+  testIgnore: '**/profile/**',
   fullyParallel: true,
   forbidOnly: isCI,
   reporter: [['list'], ['html', { open: 'never' }]],
