@@ -20,7 +20,8 @@
     "test:visual:linux": "docker run --rm --ipc=host -v \"$PWD\":/work -v /work/node_modules -w /work mcr.microsoft.com/playwright:v1.63.0-noble bash -c \"npm ci && npx playwright test --grep @visual --project=desktop-chromium --project=mobile-chromium\"",
     "test:visual:linux:update": "docker run --rm --ipc=host -v \"$PWD\":/work -v /work/node_modules -w /work mcr.microsoft.com/playwright:v1.63.0-noble bash -c \"npm ci && npx playwright test --grep @visual --project=desktop-chromium --project=mobile-chromium --update-snapshots\"",
     "test:report": "playwright show-report",
-    "profile": "playwright test --config playwright.profile.config.ts"
+    "profile": "playwright test --config playwright.profile.config.ts",
+    "acceptance": "playwright test --config playwright.acceptance.config.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "5.104.1",

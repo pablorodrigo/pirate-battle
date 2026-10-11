@@ -9,8 +9,8 @@ const isCI = Boolean(process.env.CI)
 
 export default defineConfig({
   testDir: './tests',
-  // Profiling has its own configuration: playwright.profile.config.ts.
-  testIgnore: '**/profile/**',
+  // Profiling and the acceptance captures have configurations of their own.
+  testIgnore: ['**/profile/**', '**/acceptance/**'],
   fullyParallel: true,
   forbidOnly: isCI,
   // CI has no GPU: WebGL and page compositing run in software, so frames,

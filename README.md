@@ -144,6 +144,7 @@ Every entry is versioned and validated on read; corrupt or outdated data is igno
 | `npm run test:visual:linux:update` | Regenerate the Linux baselines inside that image, for review. |
 | `npm run test:report` | Open the HTML report of the last Playwright run. |
 | `npm run profile` | Profile a three-minute match and five play-and-leave cycles in Google Chrome, writing the results to `docs/profiling/`. |
+| `npm run acceptance` | Capture the phone screenshots of `docs/ACCEPTANCE.md` again, from the e2e build. |
 
 ## Environment variables
 
@@ -176,6 +177,8 @@ The e2e build adds a test bridge (`window.__PIRATE_BATTLE__`). Before a match st
 
 **Reports:** every Playwright run writes an HTML report to `playwright-report/` (`npm run test:report`), with traces and screenshots for failed tests. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) summarizes the last full run, and [docs/test-report/index.html](docs/test-report/index.html) is its HTML report.
 
+**Acceptance evidence:** [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) goes through the challenge statement requirement by requirement, with phone screenshots and the tests that check each one. `npm run acceptance` captures the screenshots again.
+
 **Continuous integration** (`.github/workflows/ci.yml`) runs typecheck, lint, unit tests, the build and the whole Playwright suite inside the same Playwright image on an arm64 runner, and uploads the HTML report.
 
 ## Performance
@@ -192,7 +195,7 @@ The e2e build adds a test bridge (`window.__PIRATE_BATTLE__`). Before a match st
 
 ```text
 assets/              Asset pack provided with the challenge, unchanged
-docs/                Profiling, test report and asset notes
+docs/                Acceptance evidence, profiling, test report and asset notes
 public/              Files served as-is, such as the MSW worker script
 src/
   app/               Bootstrap, query client, navigation and the App shell
@@ -221,6 +224,7 @@ src/
   testing/           End-to-end test bridge, loaded only by the e2e build
 tests/
   e2e/               Playwright specs
+  acceptance/        Screenshots of the acceptance evidence, outside the regular suite
   profile/           Profiling runs, outside the regular suite
   visual/            Visual regression specs and their baselines
   support/           Shared Playwright fixtures and match helpers
