@@ -16,6 +16,8 @@ const ENEMY_SHOT_TINT = 0xffb1a3
 const TRAIL_LENGTH = 22
 /** Keeps the player's sail color apart from every other draw of the match seed. */
 const PLAYER_SHIP_SALT = 0x73686970
+/** A hit on the player shakes the scene: arena units, simulation steps and the speed of the sway. */
+const SHAKE = { amplitude: 5, steps: 14, speed: 1.7 } as const
 
 type RendererState = 'idle' | 'running' | 'destroyed'
 
@@ -31,6 +33,11 @@ export class PixiRenderer {
   private readonly textures: GameTextures
   /** The sails the player flies this match. */
   private readonly playerShip: ShipStages
+  /** The player asked the system for reduced motion: no drifting water, leaping sailors or shake. */
+  private readonly reducedMotion: boolean
+  /** Where the fitted scene sits in the canvas, before any shake. */
+  private readonly sceneOrigin = { x: 0, y: 0 }
+  private shakeStart = Number.NEGATIVE_INFINITY
   private readonly app = new Application()
   private readonly scene = new Container()
   private readonly terrain: Terrain
@@ -58,8 +65,9 @@ export class PixiRenderer {
       throw new Error('The player ship textures are missing.')
     }
     this.playerShip = playerShip
-    this.terrain = new Terrain(map, seed, textures)
-    this.effects = new EffectLayer(textures)
+    this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    this.terrain = new Terrain(map, seed, textures, this.reducedMotion)
+    this.effects = new EffectLayer(textures, this.reducedMotion)
     // Attached up front so that destroying the application releases every
     // display object, even when it is destroyed before init() completes.
     this.scene.addChild(this.terrain.root, this.shipLayer, this.projectileLayer, this.effects.root)
@@ -119,6 +127,9 @@ export class PixiRenderer {
       this.effects.handle(event, now)
       if (event.type === 'shipDamaged') {
         this.shipViews.get(event.shipId)?.flash(now)
+        if (event.kind === 'player' && !this.reducedMotion) {
+          this.shakeStart = now
+        }
       } else if (event.type === 'shipDestroyed') {
         const pose = this.shipViews.get(event.shipId)?.hullPose
         if (pose) {
@@ -153,6 +164,7 @@ export class PixiRenderer {
 
     this.terrain.update(now)
     this.effects.update(now)
+    this.shake(now)
   }
 
   destroy(): void {
@@ -230,9 +242,23 @@ export class PixiRenderer {
     this.app.renderer.resize(width, height)
     const scale = Math.min(width / this.arena.width, height / this.arena.height)
     this.scene.scale.set(scale)
+    this.sceneOrigin.x = (width - this.arena.width * scale) / 2
+    this.sceneOrigin.y = (height - this.arena.height * scale) / 2
+    this.scene.position.set(this.sceneOrigin.x, this.sceneOrigin.y)
+  }
+
+  /** Sways the scene around its fitted place for a moment after the player is hit, fading out. */
+  private shake(now: number): void {
+    const elapsed = now - this.shakeStart
+    // Before any hit the elapsed time is infinite, and sin(∞) is NaN: only sway inside the window.
+    if (!(elapsed >= 0 && elapsed < SHAKE.steps)) {
+      this.scene.position.set(this.sceneOrigin.x, this.sceneOrigin.y)
+      return
+    }
+    const offset = SHAKE.amplitude * (1 - elapsed / SHAKE.steps) * this.scene.scale.x
     this.scene.position.set(
-      (width - this.arena.width * scale) / 2,
-      (height - this.arena.height * scale) / 2,
+      this.sceneOrigin.x + offset * Math.sin(elapsed * SHAKE.speed),
+      this.sceneOrigin.y + offset * Math.cos(elapsed * SHAKE.speed * 1.3),
     )
   }
 }

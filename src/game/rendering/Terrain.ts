@@ -80,8 +80,11 @@ export class Terrain {
   readonly root = new Container()
   private readonly water: TilingSprite
   private readonly bakedTextures: Texture[] = []
+  private readonly still: boolean
 
-  constructor(map: MapLayout, seed: number, textures: GameTextures) {
+  /** `still` keeps the water from drifting, for players who ask for reduced motion. */
+  constructor(map: MapLayout, seed: number, textures: GameTextures, still = false) {
+    this.still = still
     const { width, height } = map.arena
     const waterTexture = this.bake(textures, TILE, TILE, [{ tile: WATER_TILE, x: 0, y: 0 }], true)
     this.water = new TilingSprite({ texture: waterTexture, width, height })
@@ -114,7 +117,9 @@ export class Terrain {
   }
 
   update(now: number): void {
-    this.water.tilePosition.set(now * WATER_DRIFT.x, now * WATER_DRIFT.y)
+    if (!this.still) {
+      this.water.tilePosition.set(now * WATER_DRIFT.x, now * WATER_DRIFT.y)
+    }
   }
 
   /** Sprites first, then the baked textures they display. */

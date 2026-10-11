@@ -170,6 +170,8 @@ Every variable is optional and public: Vite inlines `VITE_*` values into the cli
 
 The e2e build adds a test bridge (`window.__PIRATE_BATTLE__`). Before a match starts, a test can set the seed, which also draws the map, or pin the classic map, switch to a manual clock that only advances when the test asks, and place ships. During play the bridge only reads state and advances whole simulation steps: tests press the real keys, or hold several fingers through the Chrome DevTools Protocol, and check the effects. The public build does not contain the bridge. Each test starts from a fresh browser context, and any console error or uncaught exception fails it.
 
+**Accessibility checks** run axe with the WCAG 2.1 A and AA rules on the main menu, Options, a paused match and the result screen.
+
 **Visual regression** compares the main menu, the arena in a known state on the classic map and on a map drawn from a fixed seed, and the result screen, on desktop and mobile. Baselines are versioned per platform in `tests/visual/screens.spec.ts-snapshots/`: `*-darwin.png` for macOS and `*-linux.png`, generated in the official Playwright image (`mcr.microsoft.com/playwright:v1.63.0-noble`, arm64). Regenerated baselines must be reviewed before they are committed.
 
 **Reports:** every Playwright run writes an HTML report to `playwright-report/` (`npm run test:report`), with traces and screenshots for failed tests. [docs/TEST_REPORT.md](docs/TEST_REPORT.md) summarizes the last full run, and [docs/test-report/index.html](docs/test-report/index.html) is its HTML report.

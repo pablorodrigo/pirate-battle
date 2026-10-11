@@ -1,4 +1,4 @@
-import { Container, Graphics, GraphicsContext, Sprite, type Texture } from 'pixi.js'
+import { Container, Graphics, GraphicsContext, Sprite, Text, TextStyle, type Texture } from 'pixi.js'
 import type { GameTextures } from '../assets/gameTextures.ts'
 import type { GameEvent } from '../core/events.ts'
 import { deriveSeed, SeededRandom } from '../core/math/random.ts'
@@ -28,6 +28,17 @@ const CREW_HOP = 0.5
 const CREW = { min: 2, max: 3, distance: { min: 36, max: 58 }, spread: 0.7, spin: 5 } as const
 /** Keeps the crew's draws apart from any other stream seeded by ship ids. */
 const CREW_SALT = 0x63726577
+/** The point a sunk enemy scores, rising over its explosion in the gold of the score's star. */
+const SCORE_POPUP: Animation = { durationSteps: 45, fromScale: 1.15, toScale: 0.95, fromAlpha: 1, fadeFrom: 0.6 }
+/** How far above the wreck the point starts and ends; it never rises past `top`, inside the arena. */
+const SCORE_RISE = { from: 20, to: 56, top: 18 } as const
+const SCORE_STYLE = new TextStyle({
+  fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  fontSize: 26,
+  fontWeight: '800',
+  fill: 0xffe27a,
+  stroke: { color: 0x0b2a3c, width: 5 },
+})
 
 /** Travel from one point to another, eased out, while turning. */
 type Motion = {
@@ -40,7 +51,7 @@ type Motion = {
 }
 
 type ActiveEffect = {
-  readonly display: Sprite | Graphics
+  readonly display: Container
   readonly animation: Animation
   readonly startStep: number
   readonly motion?: Motion
@@ -50,16 +61,19 @@ type ActiveEffect = {
  * Short effects driven by simulation time: they freeze while the match is
  * paused and look the same for the same match, which keeps screenshots
  * reproducible. Effects only react to events; they never decide outcomes.
+ * With reduced motion, sailors no longer leap and the score no longer rises.
  */
 export class EffectLayer {
   readonly root = new Container()
   private readonly textures: GameTextures
+  private readonly reducedMotion: boolean
   private readonly effects: ActiveEffect[] = []
   // Shared geometry owned here and destroyed after every effect that uses it.
   private readonly ring = new GraphicsContext().circle(0, 0, RING_RADIUS).stroke({ width: 5, color: 0xffffff })
 
-  constructor(textures: GameTextures) {
+  constructor(textures: GameTextures, reducedMotion = false) {
     this.textures = textures
+    this.reducedMotion = reducedMotion
   }
 
   get count(): number {
@@ -81,7 +95,13 @@ export class EffectLayer {
         break
       case 'shipDestroyed':
         this.spawnSprite(largeExplosion, event.x, event.y, EXPLOSION, now)
-        this.spawnCrew(event.shipId, event.x, event.y, event.angle, now)
+        if (!this.reducedMotion) {
+          this.spawnCrew(event.shipId, event.x, event.y, event.angle, now)
+        }
+        // Only an enemy sunk by a cannonball scores; a Chaser ramming the player does not.
+        if (event.kind !== 'player' && event.cause === 'projectile') {
+          this.spawnScore(event.x, event.y, now)
+        }
         break
       default:
         break
@@ -133,7 +153,7 @@ export class EffectLayer {
     }
   }
 
-  /** Sprites and Graphics are destroyed without options, so shared textures and contexts stay intact. */
+  /** Displays are destroyed without options, so shared textures and contexts stay intact. */
   destroy(): void {
     for (const effect of this.effects) {
       effect.display.destroy()
@@ -195,7 +215,17 @@ export class EffectLayer {
   }
 
   /** `start` may lie ahead of the current step, for an effect that follows another. */
-  private add(display: Sprite | Graphics, animation: Animation, start: number, motion?: Motion): void {
+  /** "+1" over a sunk enemy: it rises and fades, or only fades with reduced motion. */
+  private spawnScore(x: number, y: number, now: number): void {
+    const fromY = Math.max(SCORE_RISE.top, y - SCORE_RISE.from)
+    const toY = Math.max(SCORE_RISE.top, y - SCORE_RISE.to)
+    const label = new Text({ text: '+1', style: SCORE_STYLE, anchor: 0.5, x, y: fromY })
+    label.scale.set(SCORE_POPUP.fromScale)
+    const rise = { fromX: x, fromY, toX: x, toY, spin: 0, hop: 0 }
+    this.add(label, SCORE_POPUP, now, this.reducedMotion ? undefined : rise)
+  }
+
+  private add(display: Container, animation: Animation, start: number, motion?: Motion): void {
     display.alpha = animation.fromAlpha
     display.visible = false
     this.root.addChild(display)
