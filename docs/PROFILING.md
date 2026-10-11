@@ -2,7 +2,7 @@
 
 Combat performance and memory, measured with `npm run profile` on October 10, 2026, on commit `ac2d718`, where every match plays on a map drawn from its seed. The raw results, with one sample per second of every match, are in [profiling/](profiling/).
 
-Later commits add only presentation: sailors leaping from sinking ships, the player's sail colors, rowboats on the beaches, the sailing loop and the menus' sounds. They draw a few more sprites and play a few more sounds, and were not profiled again.
+Later commits add only presentation: sailors leaping from sinking ships, the player's sail colors, rowboats on the beaches, score popups, a hit shake, the sailing loop, the menus' sounds, and layouts of the result and pause menus for phones held sideways. They draw a few more sprites and play a few more sounds, and were not profiled again.
 
 ## Summary
 

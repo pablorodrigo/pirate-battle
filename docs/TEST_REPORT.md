@@ -1,6 +1,6 @@
 # Test report
 
-Last full run: October 10, 2026, on commit `a46b20e`.
+Last full run: October 10, 2026, on commit `8e4122c`. [ACCEPTANCE.md](ACCEPTANCE.md) shows each requirement of the challenge on a phone, next to the specs that check it.
 
 ## Summary
 
@@ -10,7 +10,7 @@ Last full run: October 10, 2026, on commit `a46b20e`.
 | Lint | `npm run lint` | Passed, no warnings | Passed, no warnings |
 | Unit tests | `npm run test:unit` | 114 passed in 21 files | 114 passed in 21 files |
 | Production build | `npm run build` | Passed | Passed |
-| End-to-end and visual tests | `npm run test:e2e` | 171 passed, 20 skipped, in 3.6 min | 171 passed, 20 skipped, in 8.0 min |
+| End-to-end and visual tests | `npm run test:e2e` | 183 passed, 20 skipped, in 3.7 min | 183 passed, 20 skipped, in 9.5 min |
 
 Twenty tests are skipped on purpose in every run. They are the ten touch tests (three touch-control tests and seven touch-layout tests) in the two projects without a touch screen, `desktop-chromium` and `dev-strict-mode`. `mobile-chromium` runs them.
 
@@ -37,9 +37,9 @@ The Linux run uses the image, architecture and commands of the CI workflow (`.gi
 
 | Project | Target | Tests |
 | --- | --- | ---: |
-| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 65 (61 end-to-end, 4 visual) |
-| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 65 (61 end-to-end, 4 visual) |
-| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 61 (end-to-end only) |
+| `desktop-chromium` | Optimized e2e build, Desktop Chrome viewport | 69 (65 end-to-end, 4 visual) |
+| `mobile-chromium` | Optimized e2e build, Pixel 7 in landscape with touch. The touch layout tests also resize it to iPhone and Pixel screens in both orientations. | 69 (65 end-to-end, 4 visual) |
+| `dev-strict-mode` | Dev server, where React Strict Mode mounts every component twice | 65 (end-to-end only) |
 
 Every test starts from a fresh browser context. Matches use fixed seeds and, where timing matters, a manual clock that advances whole simulation steps; tests act through real key presses or, on touch, held fingers sent through the Chrome DevTools Protocol, and check the effects. Any console error or uncaught exception fails a test unless that test expects it.
 
@@ -61,6 +61,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | 12 | Resending after a timeout without duplicates; late responses never replacing newer data | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | — | Visual regression of the menu, the arena in a stable state on the classic map and on a drawn map, and the result screen | `visual/screens.spec.ts` |
 | — | Drawn maps: the page plays the very map the generator draws for a seed, and a seed always brings its map back | `map.spec.ts` |
+| — | Accessibility: axe with the WCAG 2.1 A and AA rules on the main menu with each tab, Options, a paused match and the result | `accessibility.spec.ts` |
 | — | Sound: the setting; the menus' sounds load at the first press and the match's once a match starts, and nothing loads while sound is off | `audio.spec.ts`, `options.spec.ts` |
 | — | Touch layout in both orientations, nothing over the arena; no text selection or page zoom | `touch-layout.spec.ts`, `touch.spec.ts`, `smoke.spec.ts` |
 | — | How to play explains the controls of the device in use; the menu title is centred | `smoke.spec.ts`, `visual/screens.spec.ts` |
@@ -81,6 +82,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 
 | Found by | Symptom | Cause | Fix |
 | --- | --- | --- | --- |
+| Capturing the acceptance screenshots | On a phone held sideways, the pause menu ran past the bottom of the screen when its reason took two lines, hiding the sound switch. | Its buttons stacked in a 26rem-wide dialog, too tall for about 343 px of screen. | `75fff7d`: on short landscape screens the dialog widens and its buttons sit side by side. |
 | A manual test on an iPhone in landscape | The result screen ran past the bottom of the screen: its buttons and the bottom of its frame were cut off. | One column of outcome, registration and actions was taller than a phone held sideways (about 370 px against 343 px on an iPhone 15). | `2ae6a94`: on short landscape screens the outcome and the registration sit side by side, above the actions. |
 | Updating the baselines after the player's colors and the beached boats | The visual comparison still passed although the arena had changed. | The comparison tolerates 1% of different pixels, more than a boat or a sail color covers. | `65031d5`: the arena baselines were captured again, so they show what the game draws. |
 | Measuring the map generator over 1,000 seeds | 87% of the sand islands sat against a border, leaving the middle of the arena empty. | Open water a whole channel away from every border is the hardest place to fit an island, so the random positions that fitted were mostly at the borders. | `1974926`: each map draws one or two coasts on purpose and places every other island only in open water. |
