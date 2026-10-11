@@ -2,6 +2,8 @@
 
 Combat performance and memory, measured with `npm run profile` on October 10, 2026, on commit `ac2d718`, where every match plays on a map drawn from its seed. The raw results, with one sample per second of every match, are in [profiling/](profiling/).
 
+Later commits add only presentation: sailors leaping from sinking ships, the player's sail colors, rowboats on the beaches, the sailing loop and the menus' sounds. They draw a few more sprites and play a few more sounds, and were not profiled again.
+
 ## Summary
 
 - Every measured match averaged **60 FPS**, with a **95th percentile frame interval of 16.7 ms**, one frame at 60 Hz, at both resolutions. No frame interval exceeded 16.8 ms.

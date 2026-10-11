@@ -1,6 +1,6 @@
 # Test report
 
-Last full run: October 10, 2026, on commit `ac2d718`.
+Last full run: October 10, 2026, on commit `a46b20e`.
 
 ## Summary
 
@@ -8,9 +8,9 @@ Last full run: October 10, 2026, on commit `ac2d718`.
 | --- | --- | --- | --- |
 | Type checking | `npm run typecheck` | Passed | Passed |
 | Lint | `npm run lint` | Passed, no warnings | Passed, no warnings |
-| Unit tests | `npm run test:unit` | 113 passed in 21 files | 113 passed in 21 files |
+| Unit tests | `npm run test:unit` | 114 passed in 21 files | 114 passed in 21 files |
 | Production build | `npm run build` | Passed | Passed |
-| End-to-end and visual tests | `npm run test:e2e` | 171 passed, 20 skipped, in 5.0 min | 171 passed, 20 skipped, in 7.0 min |
+| End-to-end and visual tests | `npm run test:e2e` | 171 passed, 20 skipped, in 3.6 min | 171 passed, 20 skipped, in 8.0 min |
 
 Twenty tests are skipped on purpose in every run. They are the ten touch tests (three touch-control tests and seven touch-layout tests) in the two projects without a touch screen, `desktop-chromium` and `dev-strict-mode`. `mobile-chromium` runs them.
 
@@ -61,7 +61,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | 12 | Resending after a timeout without duplicates; late responses never replacing newer data | `registration.spec.ts`, `network-scenarios.spec.ts` |
 | — | Visual regression of the menu, the arena in a stable state on the classic map and on a drawn map, and the result screen | `visual/screens.spec.ts` |
 | — | Drawn maps: the page plays the very map the generator draws for a seed, and a seed always brings its map back | `map.spec.ts` |
-| — | Sound effects: the setting, and files that load only once a match starts and only while sound is on | `audio.spec.ts`, `options.spec.ts` |
+| — | Sound: the setting; the menus' sounds load at the first press and the match's once a match starts, and nothing loads while sound is off | `audio.spec.ts`, `options.spec.ts` |
 | — | Touch layout in both orientations, nothing over the arena; no text selection or page zoom | `touch-layout.spec.ts`, `touch.spec.ts`, `smoke.spec.ts` |
 | — | How to play explains the controls of the device in use; the menu title is centred | `smoke.spec.ts`, `visual/screens.spec.ts` |
 
@@ -72,7 +72,7 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 | Simulation: geometry, random numbers, session, movement, combat, enemies, spawns, navigation, and map generation with every rule of a layout over 300 seeds | `src/game/core/**` | 62 |
 | Configuration and arena layout | `src/game/config/**` | 9 |
 | Fixed-step loop and input merging | `src/game/runtime/**`, `src/game/input/**` | 8 |
-| Match sounds: which sound each event and change of the match plays | `src/game/audio/**` | 8 |
+| Match sounds: which sound each event and change of the match plays, and the sailing loop | `src/game/audio/**` | 9 |
 | Ship atlas parser | `src/game/assets/**` | 3 |
 | Mock database and its fixtures, revision guard, settings and the registration outbox | `src/mocks/**`, `src/shared/api/**`, `src/features/**` | 19 |
 | Screen navigation | `src/app/**` | 4 |
@@ -81,6 +81,8 @@ Every test starts from a fresh browser context. Matches use fixed seeds and, whe
 
 | Found by | Symptom | Cause | Fix |
 | --- | --- | --- | --- |
+| A manual test on an iPhone in landscape | The result screen ran past the bottom of the screen: its buttons and the bottom of its frame were cut off. | One column of outcome, registration and actions was taller than a phone held sideways (about 370 px against 343 px on an iPhone 15). | `2ae6a94`: on short landscape screens the outcome and the registration sit side by side, above the actions. |
+| Updating the baselines after the player's colors and the beached boats | The visual comparison still passed although the arena had changed. | The comparison tolerates 1% of different pixels, more than a boat or a sail color covers. | `65031d5`: the arena baselines were captured again, so they show what the game draws. |
 | Measuring the map generator over 1,000 seeds | 87% of the sand islands sat against a border, leaving the middle of the arena empty. | Open water a whole channel away from every border is the hardest place to fit an island, so the random positions that fitted were mostly at the borders. | `1974926`: each map draws one or two coasts on purpose and places every other island only in open water. |
 | Reviewing screenshots of drawn maps | A thin light line ran along the inner edge of coasts on the bottom and right borders. | The baked scenery textures repeated past their edges, so filtering blended each texture's far border, opaque sand on a coast, into its near edge. | `1974926`: only the water texture repeats; the others clamp at their edges. |
 | The Linux run in the CI image | `registration.spec.ts` › "keeps a pending registration through a reload…" on `mobile-chromium`: Match History stayed empty. | The trace showed `POST /api/matches` answered with 404 by the static server. A scheduled retry of the old page fired while the test navigated away, after MSW had stopped serving that page at `beforeunload`, and the 404 marked the match as rejected. | `30c1417`: the registration coordinator sends nothing more once the page starts unloading. Unit tests reproduce the race deterministically. |
