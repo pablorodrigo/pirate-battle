@@ -27,3 +27,21 @@
 .settings {
   margin-top: 0.75rem;
 }
+
+/*
+ * A phone held sideways is too short for the buttons stacked on top of each
+ * other: a wider dialog keeps them side by side, so the whole menu fits.
+ */
+@media (orientation: landscape) and (max-height: 32rem) {
+  .dialog {
+    width: min(38rem, calc(100vw - 2rem));
+  }
+
+  .actions {
+    margin-top: 0.75rem;
+  }
+
+  .settings {
+    margin-top: 0.5rem;
+  }
+}
